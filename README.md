@@ -1,0 +1,2 @@
+# JavaEaseFrame-code-generator
+使用word文档或DB连接的表信息，生成基于JavaEaseFrame框架的代码的工具
