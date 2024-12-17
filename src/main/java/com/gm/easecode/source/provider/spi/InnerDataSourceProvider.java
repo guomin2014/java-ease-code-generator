@@ -264,7 +264,9 @@ public class InnerDataSourceProvider extends AbstractDataSourceProvider{
 				for (int i = 0; i < methodArrs.size(); i++) {
 					AppClassMethodList method = methodArrs.getObject(i, AppClassMethodList.class);
 					methodList.add(method);
-					importClasses.add(method.getReturnType());
+					if (StringUtils.isNotEmpty(method.getReturnType())) {
+						importClasses.add(method.getReturnType());
+					}
 					List<AppClassMethodParam> methodParams = method.getParams();
 					if (methodParams != null) {
 						for (AppClassMethodParam methodParam : methodParams) {

@@ -395,7 +395,9 @@ public class AppClass implements Serializable {
 		for (AppClassMethod classMethod : methods) {
 			if (classMethod instanceof AppClassMethodList) {
 				AppClassMethodList method = (AppClassMethodList)classMethod;
-				importClasses.add(method.getReturnType());
+				if (StringUtils.isNotEmpty(method.getReturnType())) {
+					importClasses.add(method.getReturnType());
+				}
 				List<AppClassMethodParam> params = method.getParams();
 				if (params != null) {
 					for (AppClassMethodParam param : params) {

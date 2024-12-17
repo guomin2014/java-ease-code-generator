@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.gm.easecode.common.vo.AliasConstants;
 import com.gm.easecode.common.vo.AppAnnotation;
 import com.gm.easecode.common.vo.AppClass;
 import com.gm.easecode.common.vo.AppClassConstructor;
@@ -19,7 +20,10 @@ import com.gm.easecode.common.vo.AppClassMethodBody;
 import com.gm.easecode.common.vo.AppClassMethodGetAndSet;
 import com.gm.easecode.common.vo.AppClassMethodList;
 import com.gm.easecode.common.vo.AppClassMethodParam;
+import com.gm.easecode.common.vo.AppContext;
 import com.gm.easecode.common.vo.AppTableContext;
+import com.gm.easecode.common.vo.ClassType;
+import com.gm.easecode.config.AppConfig;
 
 public final class ClassFileUtil { 
 	
@@ -31,30 +35,33 @@ public final class ClassFileUtil {
 	 * @throws Exception
 	 */
 	public final static String crtClassContent(AppTableContext context, AppClass appClass) throws Exception {
+		return crtClassContent(context.getConfig(), appClass);
+	}
+	public final static String crtClassContent(AppConfig config, AppClass appClass) throws Exception {
 		//获取类的模板内容
-		String content = FileUtil.read(context.getConfig().getClassTpl(), context.getConfig().getCharset());
+		String content = FileUtil.read(config.getClassTpl(), config.getCharset());
 		//公共内容替换
-		content = replace(content, "version", context.getConfig().getVersion());
-		content = replace(content, "date", context.getConfig().getFileDate());
-		content = replace(content, "copyright", context.getConfig().getCopyright());
-		content = replace(content, "company", context.getConfig().getCompany());
-		content = replace(content, "author", context.getConfig().getAuthor());
+		content = replace(content, "version", config.getVersion());
+		content = replace(content, "date", config.getFileDate());
+		content = replace(content, "copyright", config.getCopyright());
+		content = replace(content, "company", config.getCompany());
+		content = replace(content, "author", config.getAuthor());
 		
 		content = replace(content, "fileName", appClass.getFileName());
 		content = replace(content, "title", appClass.getDesc());
 		content = replace(content, "description", appClass.getDescription());
 		content = replace(content, "package", "package " + appClass.getPackageName() + ";");
 		
-		content = replace(content, "imports", generateClassImport(context, appClass));
-		content = replace(content, "annotations", generateClassAnnotation(context, appClass));
+		content = replace(content, "imports", generateClassImport(appClass));
+		content = replace(content, "annotations", generateClassAnnotation(appClass));
 		content = replace(content, "accessModifier", appClass.getModifier());
 		content = replace(content, "classType", appClass.getType());
 		content = replace(content, "className", appClass.getClassName());
 		content = replace(content, "extendsClass", generateClassRelation("extends", appClass.getExtendsClasses()));
 		content = replace(content, "implementsClass", generateClassRelation("implements", appClass.getImplementsClasses()));
-		content = replace(content, "fields", generateClassField(context, appClass));
-		content = replace(content, "constructors", generateClassConstructor(context, appClass));
-		content = replace(content, "methods", generateClassMethod(context, appClass));
+		content = replace(content, "fields", generateClassField(appClass));
+		content = replace(content, "constructors", generateClassConstructor(appClass));
+		content = replace(content, "methods", generateClassMethod(appClass));
 		return content;
 	}
 	/**
@@ -68,7 +75,7 @@ public final class ClassFileUtil {
 		if (StringUtils.isEmpty(content) || StringUtils.isEmpty(replaceKey)) {
 			return content;
 		}
-		return content.replace("${" + replaceKey + "}", StringUtils.isEmpty(replaceContent) ? "" : replaceContent);
+		return content.replace(AliasConstants.generalAliasVariable(replaceKey), StringUtils.isEmpty(replaceContent) ? "" : replaceContent);
 	}
 	/**
 	 * 生成类的导入类信息
@@ -76,7 +83,7 @@ public final class ClassFileUtil {
 	 * @param importClasses
 	 * @return
 	 */
-	private static String generateClassImport(AppTableContext context, AppClass appClass) {
+	private static String generateClassImport(AppClass appClass) {
 		CustomStringBuilder builder = new CustomStringBuilder();
 		Set<String> importClasses = new HashSet<>();
 		//继承基类等需要导入的类
@@ -84,25 +91,27 @@ public final class ClassFileUtil {
 			importClasses.addAll(appClass.getImportClasses());
 		}
 		if (importClasses != null && !importClasses.isEmpty()) {
-			List<String> realImportClasses = new ArrayList<>();
+			Set<String> realImportClasses = new HashSet<>();
 			for (String className : importClasses) {
-				if (context.isFilterImport(className)) {
+				if (AppContext.isFilterImport(className)) {
 					continue;
 				}
 				String qualifiedClassName = null;
 				if (StringUtils.isNotEmpty(TableUtil.getPackage(className))) {//类名中包含包路径，则直接导入
 					qualifiedClassName = className;
 				} else {
-					qualifiedClassName = context.getQualifiedClassName(className);
+					qualifiedClassName = AppContext.getQualifiedClassName(className);
 					if (StringUtils.isEmpty(qualifiedClassName)) {
 						continue;
 					}
 				}
 				realImportClasses.add(qualifiedClassName);
 			}
-			String frameworkPackage = context.getFrameworkPackage();
+			List<String> importClasseList = new ArrayList<>(realImportClasses);
+			String packageName = appClass.getPackageName();
+			String rootPackage = TableUtil.getSubPackage(packageName, 3);
 			//对导入为进行排序，sun开头>java开头>org开头>基类框架开头>其它
-			Collections.sort(realImportClasses, new Comparator<String>() {
+			Collections.sort(importClasseList, new Comparator<String>() {
 				@Override
 				public int compare(String o1, String o2) {
 					if (o1.startsWith("sun.") && o2.startsWith("sun.")) {
@@ -132,21 +141,21 @@ public final class ClassFileUtil {
 					if (o2.startsWith("org.")) {
 						return 1;
 					}
-					if (StringUtils.isNotEmpty(frameworkPackage)) {
-						if (o1.startsWith(frameworkPackage) && o2.startsWith(frameworkPackage)) {
+					if (StringUtils.isNotEmpty(rootPackage)) {
+						if (o1.startsWith(rootPackage) && o2.startsWith(rootPackage)) {
 							return o1.compareTo(o2);
 						}
-					}
-					if (o1.startsWith(frameworkPackage)) {
-						return -1;
-					}
-					if (o2.startsWith(frameworkPackage)) {
-						return 1;
+						if (o1.startsWith(rootPackage)) {
+							return 1;
+						}
+						if (o2.startsWith(rootPackage)) {
+							return -1;
+						}
 					}
 					return o1.compareTo(o2);
 				}
 			});
-			for (String className : realImportClasses) {
+			for (String className : importClasseList) {
 				builder.append("import ").append(className).append(";").newLine();
 			}
 		}
@@ -157,7 +166,7 @@ public final class ClassFileUtil {
 	 * @param annotations
 	 * @return
 	 */
-	private static String generateClassAnnotation(AppTableContext context, AppClass appClass) {
+	private static String generateClassAnnotation(AppClass appClass) {
 		CustomStringBuilder builder = new CustomStringBuilder();
 		List<AppAnnotation> annotations = new ArrayList<>();
 		if (appClass.getAnnotations() != null) {
@@ -210,7 +219,7 @@ public final class ClassFileUtil {
 	 * @param appClass
 	 * @return
 	 */
-	private static String generateClassField(AppTableContext context, AppClass appClass) {
+	private static String generateClassField(AppClass appClass) {
 		CustomStringBuilder builder = new CustomStringBuilder();
 		builder.append(generateClassField(appClass.getFields(), appClass.isOverrideParentField()));
 		builder.append(generateClassField(appClass.getExtFields(), appClass.isOverrideParentField()));
@@ -285,7 +294,7 @@ public final class ClassFileUtil {
 	 * @param classConstructorList
 	 * @return
 	 */
-	private static String generateClassConstructor(AppTableContext context, AppClass appClass) {
+	private static String generateClassConstructor(AppClass appClass) {
 		CustomStringBuilder builder = new CustomStringBuilder();
 		List<AppClassConstructor> constructorList = new ArrayList<>();
 		if (appClass.getConstructors() != null) {
@@ -377,7 +386,7 @@ public final class ClassFileUtil {
 	 * @param methodList
 	 * @return
 	 */
-	private static String generateClassMethod(AppTableContext context, AppClass appClass) {
+	private static String generateClassMethod(AppClass appClass) {
 		CustomStringBuilder builder = new CustomStringBuilder();
 		if (appClass == null) {
 			return builder.toString();
@@ -386,6 +395,7 @@ public final class ClassFileUtil {
 		if (appClass.getMethods() != null) {
 			methodList.addAll(appClass.getMethods());
 		}
+		ClassType classType = ClassType.getByValue(appClass.getType());
 		for (AppClassMethod classMethod : methodList) {
 			CustomStringBuilder methodCommentBuild = new CustomStringBuilder("");
 			CustomStringBuilder methodBuild = new CustomStringBuilder("");
@@ -399,6 +409,12 @@ public final class ClassFileUtil {
 				methodBuild.newLine().appendTab();
 				if (StringUtils.isNotEmpty(method.getModifier())) {
 					methodBuild.append(method.getModifier()).append(" ");
+				}
+				if (method.isStatic()) {
+					methodBuild.append("static").append(" ");
+				}
+				if (method.isFinal()) {
+					methodBuild.append("final").append(" ");
 				}
 				methodBuild.append(StringUtils.trim(method.getReturnType())).append(" ").append(StringUtils.trim(method.getName())).append("(");
 				List<AppClassMethodParam> paramList = method.getParams();
@@ -418,7 +434,11 @@ public final class ClassFileUtil {
 					methodBuild.append(" throws ").append(StringUtils.converArray2Str(throwsType));
 				}
 				if (method.getBody() == null) {
-					methodBuild.append(";");
+					if (classType == ClassType.Class) {
+						methodBuild.append(" {").newLine().appendTab().append("}");
+					} else {
+						methodBuild.append(";");
+					}
 				} else {
 					methodBuild.append(" {").newLine().appendTab(2).append(method.getBody()).newLine().appendTab().append("}");
 				}

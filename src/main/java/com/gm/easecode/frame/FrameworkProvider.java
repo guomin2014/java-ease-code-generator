@@ -6,6 +6,7 @@ import com.gm.easecode.common.vo.AppAnnotation;
 import com.gm.easecode.common.vo.AppClass;
 import com.gm.easecode.common.vo.AppClassConstructor;
 import com.gm.easecode.common.vo.AppClassDefinition;
+import com.gm.easecode.frame.common.FrameDependey;
 
 public interface FrameworkProvider {
 
@@ -18,11 +19,10 @@ public interface FrameworkProvider {
 	 */
 	String getFrameworkPackage();
 	/**
-	 * 获取类的完全限定类名
-	 * @param className
+	 * 获取框架依赖信息
 	 * @return
 	 */
-	String getQualifiedClassName(String className);
+	FrameDependey getFrameDependey();
 	/**
 	 * 获取指定别名对应的继承对象
 	 * @param classDefinition

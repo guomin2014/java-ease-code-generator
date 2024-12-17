@@ -13,11 +13,17 @@ import com.gm.easecode.common.util.FileUtil;
 import com.gm.easecode.common.util.IbatisXmlUtil;
 import com.gm.easecode.common.util.StringUtils;
 import com.gm.easecode.common.util.TableUtil;
+import com.gm.easecode.common.util.YmlUtil;
 import com.gm.easecode.common.vo.AppClass;
+import com.gm.easecode.common.vo.AppClassBuilder;
+import com.gm.easecode.common.vo.AppClassHandler;
+import com.gm.easecode.common.vo.AppClassMethodMain;
 import com.gm.easecode.common.vo.AppModule;
 import com.gm.easecode.common.vo.AppModuleBuilder;
+import com.gm.easecode.common.vo.AppNameSpace;
 import com.gm.easecode.common.vo.AppTable;
 import com.gm.easecode.common.vo.AppTableContext;
+import com.gm.easecode.common.vo.ClassType;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.common.vo.FileAliasMode;
 import com.gm.easecode.config.AppConfig;
@@ -80,6 +86,8 @@ public class AppCodeService {
 			callback.notifyMsg(new MessageEntity("没有符合条件的FrameworkProvider[name:" + config.getFrameworkName()+"][version:" + config.getFrameworkVersion() + "]"));
 			return;
 		}
+		AppNameSpace appNameSpace = new AppNameSpace(config);
+		appNameSpace.setFrameDependey(frameworkProvider.getFrameDependey());
 		AppModule defaultModule = new AppModuleBuilder().build();
 		List<AppModule> modules = config.getModules();
 		Map<String, AppModule> tableModuleMap = new HashMap<>();
@@ -117,12 +125,12 @@ public class AppCodeService {
 			if (appModule == null) {// 无匹配规则，使用默认规则
 				appModule = defaultModule;
 			}
-			AppTableContext appContext = new AppTableContext(frameworkProvider, config, table, appModule);
+			AppTableContext appContext = new AppTableContext(frameworkProvider, appNameSpace, table, appModule);
 			appContextList.add(appContext);
 		}
 		callback.notifyMsg(new MessageEntity("共" + appContextList.size() + "张表需要生成代码"));
 		try {
-			createCode(config, appContextList, callback);
+			createCode(config, appNameSpace, appContextList, frameworkProvider, callback);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -138,7 +146,7 @@ public class AppCodeService {
 	 * @return
 	 * @throws Exception
 	 */
-	public static void createCode(AppConfig config, List<AppTableContext> contexts, MsgCallback callback) throws Exception {
+	public static void createCode(AppConfig config, AppNameSpace appNameSpace, List<AppTableContext> contexts, FrameworkProvider frameworkProvider, MsgCallback callback) throws Exception {
 		if (contexts == null || contexts.isEmpty()) {
 			throw new AppException("没有需要创建的表");
 		}
@@ -180,6 +188,15 @@ public class AppCodeService {
 					crtSqlFile(context, null, callback);
 				}
 			}
+			if (config.isCreateBootstrapFile()) {
+				callback.notifyMsg(new MessageEntity("开始构建启动代码"));
+				crtBootstrapClassFile(appNameSpace, frameworkProvider, callback);
+				crtApplicationYmlFile(appNameSpace, frameworkProvider, callback);
+				crtApplicationServiceYmlFile(appNameSpace, frameworkProvider, callback);
+				crtApplicationServiceDevYmlFile(appNameSpace, frameworkProvider, callback);
+				crtLogbckXmlFile(appNameSpace, frameworkProvider, callback);
+				crtPomXmlFile(appNameSpace, frameworkProvider, callback);
+			}
 		} finally {
 			callback.notifyMsg(new MessageEntity("构建完成"));
 		}
@@ -210,5 +227,68 @@ public class AppCodeService {
 		callback.notifyMsg(new MessageEntity(filePath));
 		filePath = StringUtils.addSeparator(context.getConfig().getDataSavePath()) + filePath;
 		FileUtil.write(filePath, content, true, true, context.getConfig().getCharset());
+	}
+	
+	private static void crtBootstrapClassFile(AppNameSpace appNameSpace, FrameworkProvider frameworkProvider, MsgCallback callback) throws Exception{
+		AppConfig config = appNameSpace.getConfig();
+		String className = StringUtils.firstToUpperCase(config.getAppName()) + config.getBootstrapSuffix();
+		String packageName = config.getRootPackage();
+		String baseJavaPath = appNameSpace.getBaseJavaPath(null, null);
+		String path = TableUtil.getPath(baseJavaPath, packageName);
+		AppClass appClass = new AppClassBuilder(new AppClassHandler(), frameworkProvider)
+		.setAliasName(FileAliasMode.Bootstrap.name())
+		.setClassName(className)
+		.setClassType(ClassType.Class.getValue())
+		.setPackageName(packageName)
+		.setFilePath(path)
+		.setDesc("启动类")
+		.build();
+		appClass.addImportClass("SpringApplication");
+		appClass.addMethod(new AppClassMethodMain("SpringApplication.run(" + className + ".class, args);"));
+		String content = ClassFileUtil.crtClassContent(config, appClass);
+		String filePath = appClass.getFilePath() + appClass.getFileName();
+		callback.notifyMsg(new MessageEntity(filePath));
+		filePath = StringUtils.addSeparator(config.getCodeSavePath()) + filePath;
+		FileUtil.write(filePath, content, false, true, config.getCharset());
+	}
+	private static void crtApplicationYmlFile(AppNameSpace appNameSpace, FrameworkProvider frameworkProvider, MsgCallback callback) throws Exception{
+		AppConfig config = appNameSpace.getConfig();
+		String content = YmlUtil.getApplicationYmlContent(appNameSpace);
+		String filePath = appNameSpace.getApplicationYmlFilePath() + appNameSpace.getApplicationYmlFileName();
+		callback.notifyMsg(new MessageEntity(filePath));
+		filePath = StringUtils.addSeparator(config.getCodeSavePath()) + filePath;
+		FileUtil.write(filePath, content, false, true, config.getCharset());
+	}
+	private static void crtApplicationServiceYmlFile(AppNameSpace appNameSpace, FrameworkProvider frameworkProvider, MsgCallback callback) throws Exception{
+		AppConfig config = appNameSpace.getConfig();
+		String content = YmlUtil.getApplicationServiceYmlContent(appNameSpace);
+		String filePath = appNameSpace.getApplicationServiceYmlFilePath() + appNameSpace.getApplicationServiceYmlFileName();
+		callback.notifyMsg(new MessageEntity(filePath));
+		filePath = StringUtils.addSeparator(config.getCodeSavePath()) + filePath;
+		FileUtil.write(filePath, content, false, true, config.getCharset());
+	}
+	private static void crtApplicationServiceDevYmlFile(AppNameSpace appNameSpace, FrameworkProvider frameworkProvider, MsgCallback callback) throws Exception{
+		AppConfig config = appNameSpace.getConfig();
+		String content = YmlUtil.getApplicationServiceDevYmlContent(appNameSpace);
+		String filePath = appNameSpace.getApplicationServiceDevYmlFilePath() + appNameSpace.getApplicationServiceDevYmlFileName();
+		callback.notifyMsg(new MessageEntity(filePath));
+		filePath = StringUtils.addSeparator(config.getCodeSavePath()) + filePath;
+		FileUtil.write(filePath, content, false, true, config.getCharset());
+	}
+	private static void crtPomXmlFile(AppNameSpace appNameSpace, FrameworkProvider frameworkProvider, MsgCallback callback) throws Exception{
+		AppConfig config = appNameSpace.getConfig();
+		String content = YmlUtil.getPomXmlContent(appNameSpace);
+		String filePath = appNameSpace.getPomXmlFilePath() + appNameSpace.getPomXmlFileName();
+		callback.notifyMsg(new MessageEntity(filePath));
+		filePath = StringUtils.addSeparator(config.getCodeSavePath()) + filePath;
+		FileUtil.write(filePath, content, false, true, config.getCharset());
+	}
+	private static void crtLogbckXmlFile(AppNameSpace appNameSpace, FrameworkProvider frameworkProvider, MsgCallback callback) throws Exception{
+		AppConfig config = appNameSpace.getConfig();
+		String content = YmlUtil.getLogbackXmlContent(appNameSpace);
+		String filePath = appNameSpace.getLogbackXmlFilePath() + appNameSpace.getLogbackXmlFileName();
+		callback.notifyMsg(new MessageEntity(filePath));
+		filePath = StringUtils.addSeparator(config.getCodeSavePath()) + filePath;
+		FileUtil.write(filePath, content, false, true, config.getCharset());
 	}
 }

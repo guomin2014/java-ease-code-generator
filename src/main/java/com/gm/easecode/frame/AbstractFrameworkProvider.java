@@ -2,24 +2,18 @@ package com.gm.easecode.frame;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import com.gm.easecode.common.util.StringUtils;
 import com.gm.easecode.common.vo.AppClass;
 import com.gm.easecode.common.vo.AppClassField;
 import com.gm.easecode.common.vo.AppClassFieldList;
+import com.gm.easecode.common.vo.AppContext;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.common.vo.FileAliasMode;
 
 public abstract class AbstractFrameworkProvider implements FrameworkProvider {
 
-	/** 实体全量名映射，如：key=AppException, value=com.wisdom.agriculture.framework.exception.AppException */
-	protected Map<String, String> qualifiedClassNameMap = new HashMap<String, String>();
-	/** 需要被过滤的导入类 */
-	protected Set<String> filterImportClasses = new HashSet<>();
 	/** 基类的Class，key：归属类型，见FileAliasEnum，key-key：基类标识，key-value：基类 */
 	protected Map<String, Map<String, AppClass>> baseClassMap = new HashMap<>();
 	
@@ -31,7 +25,6 @@ public abstract class AbstractFrameworkProvider implements FrameworkProvider {
 	public AbstractFrameworkProvider(String frameworkName, String frameworkVersion) {
 		this.frameworkName = frameworkName;
 		this.frameworkVersion = frameworkVersion;
-		this.initFilterImportClass();
 		this.initCommonQualifiedClassName();
 	}
 	
@@ -51,34 +44,26 @@ public abstract class AbstractFrameworkProvider implements FrameworkProvider {
 		this.frameworkVersion = frameworkVersion;
 	}
 
-	private void initFilterImportClass() {
-	}
 	private void initCommonQualifiedClassName() {
-		qualifiedClassNameMap.put("Repository", "org.springframework.stereotype.Repository");
-		qualifiedClassNameMap.put("Service", "org.springframework.stereotype.Service");
-		qualifiedClassNameMap.put("RestController", "org.springframework.web.bind.annotation.RestController");
-		qualifiedClassNameMap.put("RequestMapping", "org.springframework.web.bind.annotation.RequestMapping");
+		addQualifiedClassName("Repository", "org.springframework.stereotype.Repository");
+		addQualifiedClassName("Service", "org.springframework.stereotype.Service");
+		addQualifiedClassName("RestController", "org.springframework.web.bind.annotation.RestController");
+		addQualifiedClassName("RequestMapping", "org.springframework.web.bind.annotation.RequestMapping");
+		addQualifiedClassName("SpringBootApplication", "org.springframework.boot.autoconfigure.SpringBootApplication");
+		addQualifiedClassName("SpringApplication", "org.springframework.boot.SpringApplication");
 	}
 	
 	public void addQualifiedClassName(String className, String qualifiedClassName) {
-		qualifiedClassNameMap.put(className, qualifiedClassName);
+		AppContext.addQualifiedClassName(className, qualifiedClassName);
 	}
 	
-	@Override
-	public String getQualifiedClassName(String className) {
-		if (StringUtils.isEmpty(className)) {
-			return null;
-		}
-		return qualifiedClassNameMap.get(className);
-	}
-
 	/**
 	 * 初始化类的配置
 	 * @param appClass
 	 */
 	private void initClassConfig(AppClass appClass) {
 		//添加到全量路径集合中
-		this.qualifiedClassNameMap.put(appClass.getClassName(), appClass.getPackageName() + "." + appClass.getClassName());
+		addQualifiedClassName(appClass.getClassName(), appClass.getPackageName() + "." + appClass.getClassName());
 		//添加到基类集合中
 		if (appClass.getAliasName() != null && appClass.getKey() != null) {
 			Map<String, AppClass> map = this.baseClassMap.get(appClass.getAliasName());
@@ -235,6 +220,14 @@ public abstract class AbstractFrameworkProvider implements FrameworkProvider {
 		genericClasses.add(AppClass.createVariableInstance(FileAliasMode.Entity.name()));
 		genericClasses.add(AppClass.createVariableInstance(FileAliasMode.EntityKey.name()));
 		baseClass.setGenericClasses(genericClasses);
+		this.initClassConfig(baseClass);
+		return baseClass;
+	}
+	
+	public AppClass initBaseBootstrapClass(String className, String packageName, String pkType) {
+		AppClass baseClass = new AppClass(className, packageName, null);
+		baseClass.setAliasName(FileAliasMode.Bootstrap.name());
+		baseClass.setKey(pkType);
 		this.initClassConfig(baseClass);
 		return baseClass;
 	}

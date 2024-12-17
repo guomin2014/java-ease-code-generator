@@ -1705,21 +1705,23 @@ public class StringUtils
 	 */
 	public static String converArray2Str(Object[] objs)
 	{
-		if(objs == null || objs.length == 0)
-		{
+		return converArray2Str(objs, ",");
+	}
+	public static String converArray2Str(Object[] objs, String split) {
+		if (objs == null || objs.length == 0) {
 			return "";
 		}
+		if (split == null) {
+			split = "";
+		}
 		StringBuffer sb = new StringBuffer();
-		for(Object obj : objs)
-		{
-			if(obj != null)
-			{
-				sb.append(obj.toString()).append(",");
+		for (Object obj : objs) {
+			if (obj != null) {
+				sb.append(obj.toString()).append(split);
 			}
 		}
-		if(sb.length() > 0)
-		{
-			return sb.substring(0, sb.length() - 1);
+		if (sb.length() > 0) {
+			return sb.substring(0, sb.length() - split.length());
 		}
 		return "";
 	}

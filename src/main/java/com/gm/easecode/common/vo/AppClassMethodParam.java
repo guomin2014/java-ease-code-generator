@@ -12,6 +12,13 @@ public class AppClassMethodParam implements Serializable {
 	/** 参数类型 */
 	private String type;
 	
+	public AppClassMethodParam() {}
+	
+	public AppClassMethodParam(String name, String type) {
+		this.name = name;
+		this.type = type;
+	}
+	
 	public String getName() {
 		return name;
 	}

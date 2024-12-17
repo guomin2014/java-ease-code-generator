@@ -1,6 +1,7 @@
 package com.gm.easecode.common.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,18 @@ public class TableUtil
 			pack = pack.substring(pos + 1);
 		}
 		return pack;
+	}
+	public final static String getSubPackage(String pack, int dept){
+		if (StringUtils.isEmpty(pack)) {
+			return "";
+		}
+		pack = formatPackage(pack);
+		String[] packs = pack.split("\\.");
+		if (packs.length <= dept) {
+			return pack;
+		} else {
+			return StringUtils.converArray2Str(Arrays.copyOf(packs, dept), ".");
+		}
 	}
 	public final static String getPackage(String rootPackage,String subPackage){
 		return formatPackage(rootPackage) + "." + formatPackage(subPackage);

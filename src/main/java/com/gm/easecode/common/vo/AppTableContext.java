@@ -6,17 +6,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.beanutils.BeanUtils;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.gm.easecode.common.util.CustomStringBuilder;
-import com.gm.easecode.common.util.ObjectUtil;
 import com.gm.easecode.common.util.StringUtils;
 import com.gm.easecode.common.util.TableUtil;
 import com.gm.easecode.config.AppConfig;
 import com.gm.easecode.frame.FrameworkProvider;
+import com.gm.easecode.frame.common.FrameDependey;
 
-public class AppTableContext {
+public class AppTableContext extends AppClassHandler{
 	/** 类文件 */
 	private Map<String, AppClass> classMap;
 	/** 前端页面文件 */
@@ -26,11 +26,13 @@ public class AppTableContext {
 	
 	public AppConfig config;
 	
+	private AppNameSpace appNameSpace;
+	
 	public AppTable table;
 	
 	public AppModule appModule;
 	
-	public AppTableNameParam nameParam;
+	public AppTableNameSpace nameParam;
 	
 	private final String incrementSuff = "Increment";
 	private final String startSuff = "Start";
@@ -41,38 +43,37 @@ public class AppTableContext {
 	private final String listSuff = "List";
 	private final String orListSuff = "ORList";
 	
-	/** 需要被过滤的导入类 */
-	protected Set<String> filterImportClasses = new HashSet<>();
-	/** 实体全量名映射，如：key=AppException, value=com.wisdom.agriculture.framework.exception.AppException */
-	protected Map<String, String> qualifiedClassNameMap = new HashMap<String, String>();
+	private Map<String, String> aliasVariableMap;
 	
-	public AppTableContext(FrameworkProvider frameworkProvider, AppConfig config, AppTable table, AppModule appModule) {
+	public AppTableContext(FrameworkProvider frameworkProvider, AppNameSpace appNameSpace, AppTable table, AppModule appModule) {
 		this.frameworkProvider = frameworkProvider;
-		this.config = config;
+		this.appNameSpace = appNameSpace;
+		this.config = appNameSpace.getConfig();
 		this.table = table;
 		this.appModule = appModule;
-		this.nameParam = new AppTableNameParam(config, table.getTableName(), appModule);
+		this.nameParam = new AppTableNameSpace(appNameSpace, table.getTableName(), appModule);
 		this.classMap = new HashMap<>();
+		this.aliasVariableMap = new HashMap<>();
 		this.init();
 	}
 	
 	private void init() {
-		this.initFilterImportClass();
-		this.initCommonQualifiedClassName();
+		//初始化可变量
+		initAliasVariable();
 		//获取主键类型
-		String keyType = "";
+		String pkType = "";
 		if(this.table.getPriNum() > 1){//联合主键
-			keyType = this.nameParam.getEntityKey();
+			pkType = this.nameParam.getEntityKey();
 		} else {
 			if (this.table.getPriColList().size() > 0){
-				keyType = this.table.getPriColList().get(0).getJavaType();
+				pkType = this.table.getPriColList().get(0).getJavaType();
 			}else{
-				keyType = "Long";
+				pkType = "Long";
 			}
 		}
 		List<AppTableColumn> columnList = table.getColumnList();
 		//初始化Entity对象
-		AppClass entityClass = this.createAppClass(FileAliasMode.Entity.name(), this.nameParam.getEntityName(), this.nameParam.getEntityPkgName(), this.nameParam.getEntityPath(), this.table.getComment(), keyType);
+		AppClass entityClass = this.createAppClass(FileAliasMode.Entity.name(), this.nameParam.getEntityName(), this.nameParam.getEntityPkgName(), this.nameParam.getEntityPath(), this.table.getComment(), pkType);
 		entityClass.addField(new AppClassFieldSerial());
 		this.createAppClassFields(entityClass, columnList);
 		List<AppClassMethod> entityMethods = new ArrayList<>();
@@ -81,15 +82,15 @@ public class AppTableContext {
 		entityMethods.add(this.createInitAttrValueMethod(entityClass));
 		entityClass.addMethods(entityMethods);
 		classMap.put(entityClass.getAliasName(), entityClass);
-		classMap.put("EntityKey", new AppClass(keyType));
+		classMap.put("EntityKey", new AppClass(pkType));
 		//初始化Query对象
-		AppClass queryClass = this.createAppClass(FileAliasMode.Query.name(), this.nameParam.getQueryName(), this.nameParam.getEntityPkgName(), this.nameParam.getEntityPath(), this.table.getComment(), keyType);
+		AppClass queryClass = this.createAppClass(FileAliasMode.Query.name(), this.nameParam.getQueryName(), this.nameParam.getEntityPkgName(), this.nameParam.getEntityPath(), this.table.getComment(), pkType);
 		queryClass.addField(new AppClassFieldSerial());
 		this.createAppClassFields(queryClass, columnList);
 		queryClass.addMethod(new AppClassMethodGetAndSet());
 		classMap.put(queryClass.getAliasName(), queryClass);
 		//初始化Form对象
-		AppClass formClass = this.createAppClass(FileAliasMode.Form.name(), this.nameParam.getContFormName(), this.nameParam.getControllerPkgName(), this.nameParam.getControllerPath(), this.table.getComment(), keyType);
+		AppClass formClass = this.createAppClass(FileAliasMode.Form.name(), this.nameParam.getContFormName(), this.nameParam.getControllerPkgName(), this.nameParam.getControllerPath(), this.table.getComment(), pkType);
 		List<AppClassField> formFields = new ArrayList<>();
 		formFields.add(new AppClassFieldList("entity", entityClass.getClassName(), "new " + entityClass.getClassName() + "()", "实体对象"));
 		formFields.add(new AppClassFieldList("query", queryClass.getClassName(), "new " + queryClass.getClassName() + "()", "查询对象"));
@@ -98,186 +99,67 @@ public class AppTableContext {
 		formClass.addImportClass(queryClass.getFullClassName());
 		classMap.put(formClass.getAliasName(), formClass);
 		//初始化Dto对象
-		AppClass requestDtoClass = this.createAppClass(FileAliasMode.RequestDto.name(), this.nameParam.getControllerDtoReqName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.table.getComment(), keyType);
+		AppClass requestDtoClass = this.createAppClass(FileAliasMode.RequestDto.name(), this.nameParam.getControllerDtoReqName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.table.getComment(), pkType);
 		requestDtoClass.setOverrideParentField(true);
 		requestDtoClass.addField(new AppClassFieldSerial());
 		this.createAppClassFields(requestDtoClass, columnList);
 		requestDtoClass.addMethod(new AppClassMethodGetAndSet());
 		classMap.put(requestDtoClass.getAliasName(), requestDtoClass);
-		AppClass requestPageDtoClass = this.createAppClass(FileAliasMode.RequestPageDto.name(), this.nameParam.getControllerDtoReqPageName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.table.getComment(), keyType);
+		AppClass requestPageDtoClass = this.createAppClass(FileAliasMode.RequestPageDto.name(), this.nameParam.getControllerDtoReqPageName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.table.getComment(), pkType);
 		requestPageDtoClass.setOverrideParentField(true);
 		requestPageDtoClass.addField(new AppClassFieldSerial());
 		this.createAppClassFields(requestPageDtoClass, columnList);
 		requestPageDtoClass.addMethod(new AppClassMethodGetAndSet());
 		classMap.put(requestPageDtoClass.getAliasName(), requestPageDtoClass);
-		AppClass responseDtoClass = this.createAppClass(FileAliasMode.ResponseDto.name(), this.nameParam.getControllerDtoRspName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.table.getComment(), keyType);
+		AppClass responseDtoClass = this.createAppClass(FileAliasMode.ResponseDto.name(), this.nameParam.getControllerDtoRspName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.table.getComment(), pkType);
 		responseDtoClass.setOverrideParentField(true);
 		responseDtoClass.addField(new AppClassFieldSerial());
 		this.createAppClassFields(responseDtoClass, columnList);
 		responseDtoClass.addMethod(new AppClassMethodGetAndSet());
 		classMap.put(responseDtoClass.getAliasName(), responseDtoClass);
 		//初始化Dao对象
-		AppClass daoClass = this.createAppInterface(FileAliasMode.Dao.name(), this.nameParam.getDaoName(), this.nameParam.getDaoPkgName(), this.nameParam.getDaoPath(), this.table.getComment(), keyType);
+		AppClass daoClass = this.createAppInterface(FileAliasMode.Dao.name(), this.nameParam.getDaoName(), this.nameParam.getDaoPkgName(), this.nameParam.getDaoPath(), this.table.getComment(), pkType);
 		classMap.put(daoClass.getAliasName(), daoClass);
 		//初始化DaoImpl对象
-		AppClass daoImplClass = this.createAppClass(FileAliasMode.DaoImpl.name(), this.nameParam.getDaoImplName(), this.nameParam.getDaoImplPkgName(), this.nameParam.getDaoImplPath(), this.table.getComment(), keyType);
+		AppClass daoImplClass = this.createAppClass(FileAliasMode.DaoImpl.name(), this.nameParam.getDaoImplName(), this.nameParam.getDaoImplPkgName(), this.nameParam.getDaoImplPath(), this.table.getComment(), pkType);
 		daoImplClass.addImplementsClass(daoClass);
 		classMap.put(daoImplClass.getAliasName(), daoImplClass);
 		//初始化Service对象
-		AppClass serviceClass = this.createAppInterface(FileAliasMode.Service.name(), this.nameParam.getServiceName(), this.nameParam.getServicePkgName(), this.nameParam.getServicePath(), this.table.getComment(), keyType);
+		AppClass serviceClass = this.createAppInterface(FileAliasMode.Service.name(), this.nameParam.getServiceName(), this.nameParam.getServicePkgName(), this.nameParam.getServicePath(), this.table.getComment(), pkType);
 		classMap.put(serviceClass.getAliasName(), serviceClass);
 		//初始化ServiceImpl对象
-		AppClass serviceImplClass = this.createAppClass(FileAliasMode.ServiceImpl.name(), this.nameParam.getServiceImplName(), this.nameParam.getServiceImplPkgName(), this.nameParam.getServiceImplPath(), this.table.getComment(), keyType);
+		AppClass serviceImplClass = this.createAppClass(FileAliasMode.ServiceImpl.name(), this.nameParam.getServiceImplName(), this.nameParam.getServiceImplPkgName(), this.nameParam.getServiceImplPath(), this.table.getComment(), pkType);
 		serviceImplClass.addImplementsClass(serviceClass);
 		classMap.put(serviceImplClass.getAliasName(), serviceImplClass);
 		//初始化controller对象
-		AppClass controllerClass = this.createAppClass(FileAliasMode.Controller.name(), this.nameParam.getControllerName(), this.nameParam.getControllerPkgName(), this.nameParam.getControllerPath(), this.table.getComment(), keyType);
+		AppClass controllerClass = this.createAppClass(FileAliasMode.Controller.name(), this.nameParam.getControllerName(), this.nameParam.getControllerPkgName(), this.nameParam.getControllerPath(), this.table.getComment(), pkType);
 		classMap.put(controllerClass.getAliasName(), controllerClass);
 		//合并类的业务实现，比如内置模块
 		mergeInnerClass();
 	}
 	
-	private void initFilterImportClass() {
-		this.filterImportClasses.add("void");
-		this.filterImportClasses.add("Void");
-		this.filterImportClasses.add("String");
-		this.filterImportClasses.add("int");
-		this.filterImportClasses.add("Integer");
-		this.filterImportClasses.add("long");
-		this.filterImportClasses.add("Long");
-		this.filterImportClasses.add("double");
-		this.filterImportClasses.add("Double");
-		this.filterImportClasses.add("float");
-		this.filterImportClasses.add("Float");
+	private AppClass createAppInterface(String aliasName, String className, String packageName, String filePath, String desc, String pkType) {
+		return this.createAppClass(aliasName, ClassType.Interface.getValue(), className, packageName, filePath, desc, pkType);
 	}
 	
-	private void initCommonQualifiedClassName() {
-		qualifiedClassNameMap.put("List", "java.util.List");
-		qualifiedClassNameMap.put("Date", "java.util.Date");
-		qualifiedClassNameMap.put("BigDecimal", "java.math.BigDecimal");
+	private AppClass createAppClass(String aliasName, String className, String packageName, String filePath, String desc, String pkType) {
+		return this.createAppClass(aliasName, ClassType.Class.getValue(), className, packageName, filePath, desc, pkType);
 	}
 	
-	private AppClass createAppInterface(String aliasName, String className, String packageName, String filePath, String desc, String baseClassKey) {
-		return this.createAppClass(aliasName, ClassType.Interface.getValue(), className, packageName, filePath, desc, baseClassKey);
-	}
-	
-	private AppClass createAppClass(String aliasName, String className, String packageName, String filePath, String desc, String baseClassKey) {
-		return this.createAppClass(aliasName, ClassType.Class.getValue(), className, packageName, filePath, desc, baseClassKey);
-	}
-	
-	private AppClass createAppClass(String aliasName, String classType, String className, String packageName, String filePath, String desc, String baseClassKey) {
-		AppClass appClass = new AppClass(classType, className, packageName, filePath, aliasName, desc);
-		AppClassDefinition classDefinition = new AppClassDefinition(aliasName, baseClassKey, this.config.getControllerClassStyle(), this.table.isTreeTable(), this.table.isSubmeterTable(), this.table.getSubmeterTableStrategy());
-		//设置类的继承类
-		AppClass baseClass = this.frameworkProvider.getClassExtendsClass(classDefinition);
-		handlerClassExtendsOrImplements(appClass, baseClass);
-		//设置类的实现接口
-		List<AppClass> superInterfaceList = this.frameworkProvider.getClassImplementsClass(classDefinition);
-		if (superInterfaceList != null) {
-			for (AppClass interfaceClass : superInterfaceList) {
-				handlerClassExtendsOrImplements(appClass, interfaceClass);
-			}
-		}
-		//设置类的注解修饰
-		List<AppAnnotation> baseAnnotations = this.frameworkProvider.getClassAnnotation(classDefinition);
-		if (baseAnnotations != null && !baseAnnotations.isEmpty()) {
-			for (AppAnnotation anno : baseAnnotations) {
-				AppAnnotation newAnno = null;
-				try {
-					newAnno = ObjectUtil.clone(anno);
-				} catch (Exception e) {}
-				if (newAnno != null) {
-					if (newAnno.getValue() instanceof AliasVO) {//值是占位符，则需要获取真实值
-						String aName = ((AliasVO)anno.getValue()).getAliasName();
-						newAnno.setValue(this.replaceAliasVariable(aName));
-					}
-					appClass.addAnnotation(newAnno);
-				}
-			}
-		}
-		//设置类的构建函数
-		List<AppClassConstructor> baseConstructors = this.frameworkProvider.getClassConstructor(classDefinition);
-		if (baseConstructors != null && !baseConstructors.isEmpty()) {
-			for (AppClassConstructor constructor : baseConstructors) {
-				AppClassConstructor cons = null;
-				try {
-					cons = ObjectUtil.clone(constructor);
-				} catch (Exception e) {}
-				if (cons != null) {
-					if (cons.getBody() instanceof AliasVO) {
-						String body = ((AliasVO)constructor.getBody()).getAliasName();
-						cons.setBody(this.replaceAliasVariable(body));
-					}
-					appClass.addConstructor(cons);
-				}
-			}
-		}
-		return appClass;
-	}
-	/**
-	 * 解析Class，获取类的泛型、需要引入的包、构造方法、方法
-	 * @param baseClass
-	 * @return
-	 */
-	private void handlerClassExtendsOrImplements(AppClass appClass, AppClass baseClass) {
-		if (baseClass != null) {
-			if (baseClass.isVariable()) {//是可变对象，则className为变量名
-				baseClass = this.classMap.get(baseClass.getClassName());
-			}
-			AppClass extendsClass = null;
-			if (baseClass != null) {
-				try {
-					extendsClass = ObjectUtil.clone(baseClass);
-				} catch (Exception e) {}
-			}
-			if (extendsClass != null) {
-				appClass.addExtendsClass(extendsClass);
-				List<AppClass> genericClasses =  extendsClass.getGenericClasses();
-				if (genericClasses != null) {
-					for (AppClass genericClass : genericClasses) {
-						if (genericClass.isVariable()) {//是可变对象，则className为变量名
-							//获取真正的对象
-							AppClass realClass = this.classMap.get(genericClass.getClassName());
-							if (realClass != null) {
-								try {
-									BeanUtils.copyProperties(genericClass, realClass);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-						}
-						if (genericClass != null) {
-							appClass.addImportClass(genericClass.getFullClassName());
-						}
-					}
-				}
-				//设置继承类的抽像方法实现
-				List<AppClassMethod> abstractMethods = extendsClass.getAbstractMethods();
-				String classType = appClass.getType();
-				if (classType.equalsIgnoreCase(ClassType.Class.getValue()) && abstractMethods != null) {
-					for (AppClassMethod classMethod : abstractMethods) {
-						try {
-							AppClassMethod newMethod = ObjectUtil.clone(classMethod);
-							if (newMethod instanceof AppClassMethodList) {
-								AppClassMethodList method = (AppClassMethodList)newMethod;
-								if (method.getBody() instanceof AliasVO) {
-									String aName = ((AliasVO)method.getBody()).getAliasName();
-									method.setBody(this.replaceAliasVariable(aName));
-								}
-								appClass.addImportClass(method.getReturnType());
-								List<AppClassMethodParam> params = method.getParams();
-								if (params != null) {
-									for (AppClassMethodParam param : params) {
-										appClass.addImportClass(param.getType());
-									}
-								}
-							}
-							appClass.addMethod(newMethod);
-						} catch (Exception e) {}
-					}
-				}
-			}
-		}
+	private AppClass createAppClass(String aliasName, String classType, String className, String packageName, String filePath, String desc, String pkType) {
+		return new AppClassBuilder(this, this.frameworkProvider)
+		.setAliasName(aliasName)
+		.setClassName(className)
+		.setClassType(classType)
+		.setPackageName(packageName)
+		.setFilePath(filePath)
+		.setDesc(desc)
+		.setPkType(pkType)
+		.setControllerClassStyle(this.config.getControllerClassStyle())
+		.setTree(this.table.isTreeTable())
+		.setSubmeter(this.table.isSubmeterTable())
+		.setSubmeterTableStrategy(this.table.getSubmeterTableStrategy())
+		.build();
 	}
 	/**
 	 * 合并内部模块相关类的属性
@@ -290,7 +172,7 @@ public class AppTableContext {
 				AppClass innerClass = table.getInnerClass(aliasName);
 				if (innerClass != null) {
 					if (innerClass.getImportClasses() != null && !innerClass.getImportClasses().isEmpty()) {
-						appClass.addImportClasses(innerClass.getImportClasses());
+						appClass.addImportClasses(replaceAliasVariable(innerClass.getImportClasses()));
 					}
 					if (innerClass.getAnnotations() != null && !innerClass.getAnnotations().isEmpty()) {
 						appClass.addAnnotations(innerClass.getAnnotations());
@@ -305,10 +187,34 @@ public class AppTableContext {
 						appClass.addConstructors(innerClass.getConstructors());
 					}
 					if (innerClass.getMethods() != null && !innerClass.getMethods().isEmpty()) {
-						appClass.addMethods(innerClass.getMethods());
+						appClass.addMethods(replaceAliasVariable(appClass, innerClass.getMethods()));
 					}
 				}
 			}
+		}
+	}
+	
+	private void initAliasVariable() {
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.MODULE_DESC), StringUtils.trim(this.table.getComment()));
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.MODULE_TABLE_NAME), StringUtils.trim(this.table.getTableName()));
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.MODULE_ENTITY_NAME), this.nameParam.getEntityName());
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.MODULE_QUERY_NAME), this.nameParam.getQueryName());
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.DAO_NAME), this.nameParam.getDaoName());
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.DAO_ANNOTATION_NAME), this.nameParam.getDaoAnnotationName());
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.SERVICE_NAME), this.nameParam.getServiceName());
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.SERVICE_ANNOTATION_NAME), this.nameParam.getServiceAnnotationName());
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.CONTROLLER_FORM_NAME), this.nameParam.getContFormName());
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.CONTROLLER_NAME), this.nameParam.getContFormName());
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.CONTROLLER_REQUEST_MAPPING_PATH), this.nameParam.getControllerMappingPath());
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.CONTROLLER_DTO_REQ_NAME), this.nameParam.getControllerDtoReqName());
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.CONTROLLER_DTO_REQ_PAGE_NAME), this.nameParam.getControllerDtoReqPageName());
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.CONTROLLER_DTO_RSP_NAME), this.nameParam.getControllerDtoRspName());
+		FrameDependey frameDependey = appNameSpace.getFrameDependey();
+		if (frameDependey != null && frameDependey.getAliasVariableMap() != null && !frameDependey.getAliasVariableMap().isEmpty()) {
+//			for(Map.Entry<String, String> entry : frameDependey.getAliasVariableMap().entrySet()) {
+//				this.aliasVariableMap.put(AliasConstants.generalAliasVariable(entry.getKey()), entry.getValue());
+//			}
+			this.aliasVariableMap.putAll(frameDependey.getAliasVariableMap());
 		}
 	}
 	
@@ -539,9 +445,9 @@ public class AppTableContext {
 				Object value = annotation.getValue();
 				if (value instanceof AliasVO) {
 					String content = ((AliasVO)value).getAliasName();
-					content = content.replace("${fieldDesc}", field.getDesc());
-					content = content.replace("${fieldName}", field.getName());
-					content = content.replace("${fieldType}", field.getType());
+					content = content.replace(AliasConstants.generalAliasVariable(AliasConstants.MODULE_ENTITY_FIELD_DESC), field.getDesc());
+					content = content.replace(AliasConstants.generalAliasVariable(AliasConstants.MODULE_ENTITY_FIELD_NAME), field.getName());
+					content = content.replace(AliasConstants.generalAliasVariable(AliasConstants.MODULE_ENTITY_FIELD_TYPE), field.getType());
 					fieldAnnotation.setValue(content);
 				} else {
 					fieldAnnotation.setValue(value);
@@ -550,20 +456,114 @@ public class AppTableContext {
 			field.setAnnotation(fieldAnnotation);
 		}
 	}
+	private boolean isVariable(String content) {
+		if (StringUtils.isEmpty(content)) {
+			return false;
+		}
+		String regex = "\\$\\{[^}]*\\}";
+		return Pattern.compile(regex).matcher(content).find();
+	}
+	private List<AppClassMethod> replaceAliasVariable(AppClass appClass, List<AppClassMethod> methods) {
+		if (methods == null || methods.isEmpty()) {
+			return methods;
+		}
+		for (AppClassMethod method : methods) {
+			if (method instanceof AppClassMethodList) {
+				AppClassMethodList met = (AppClassMethodList)method;
+				if (met.isOverride()) {//重写父类
+					List<AppClass> extendsClasses = appClass.getExtendsClasses();
+					AppClassMethodList extendsClassMethod = null;
+					if (extendsClasses != null) {
+						for (AppClass extendsClass : extendsClasses) {
+							List<AppClassMethod> superMethods = extendsClass.getMethods();
+							if (superMethods != null) {
+								for (AppClassMethod superMethod : superMethods) {
+									if (superMethod instanceof AppClassMethodList) {
+										AppClassMethodList sm = (AppClassMethodList)superMethod;
+										if (sm.getName().equals(met.getName())) {//本期不判断参数与返回值
+											extendsClassMethod = sm;
+											break;
+										}
+									}
+								}
+							}
+						}
+					}
+					if (extendsClassMethod != null) {
+						met.setModifier(extendsClassMethod.getModifier());
+						met.setReturnType(extendsClassMethod.getReturnType());
+						met.setParams(extendsClassMethod.getParams());
+						met.setThrowsType(extendsClassMethod.getThrowsType());
+					} else {
+						continue;
+					}
+				}
+				String returnType = met.getReturnType();
+				List<AppClassMethodParam> params = met.getParams();
+				Object body = met.getBody();
+				if (isVariable(returnType)) {
+					met.setReturnType(this.replaceAliasVariable(returnType));
+				}
+				if (params != null) {
+					for (AppClassMethodParam param : params) {
+						if (isVariable(param.getType())) {
+							param.setType(this.replaceAliasVariable(param.getType()));
+						}
+					}
+				}
+				if (body != null && body instanceof String) {
+					met.setBody(this.replaceAliasVariable((String)body));
+				}
+			} else if (method instanceof AppClassMethodBody) {
+				AppClassMethodBody met = (AppClassMethodBody)method;
+				Object body = met.getBody();
+				if (body != null && body instanceof String) {
+					met.setBody(this.replaceAliasVariable((String)body));
+				}
+			}
+		}
+		return methods;
+	}
 	
-	private String replaceAliasVariable(String content) {
+	private Set<String> replaceAliasVariable(Set<String> importClasses) {
+		Set<String> ret = new HashSet<>();
+		if (importClasses != null) {
+			for (String impClass : importClasses) {
+				ret.add(this.replaceAliasVariable(impClass));
+			}
+		}
+		return ret;
+	}
+	
+	@Override
+	public String replaceAliasVariable(String content) {
 		if (StringUtils.isNotEmpty(content)) {
-			content = content.replace("${requestMappingPath}", this.nameParam.getControllerMappingPath());
-			content = content.replace("${serviceName}", StringUtils.firstToLowerCase(this.nameParam.getServiceName()));
-			content = content.replace("${daoName}", StringUtils.firstToLowerCase(this.nameParam.getDaoName()));
-			content = content.replace("${entityName}", StringUtils.firstToLowerCase(this.nameParam.getEntityName()));
-			content = content.replace("${formName}", StringUtils.firstToLowerCase(this.nameParam.getContFormName()));
-			content = content.replace("${formClassName}", this.nameParam.getContFormName());
-			content = content.replace("${moduleDesc}", StringUtils.trim(this.table.getComment()));
-			content = content.replace("${tableName}", StringUtils.trim(this.table.getTableName()));
+//			content = content.replace("${requestMappingPath}", this.nameParam.getControllerMappingPath());
+//			content = content.replace("${serviceName}", StringUtils.firstToLowerCase(this.nameParam.getServiceName()));
+//			content = content.replace("${daoName}", StringUtils.firstToLowerCase(this.nameParam.getDaoName()));
+//			content = content.replace("${entityName}", StringUtils.firstToLowerCase(this.nameParam.getEntityName()));
+//			content = content.replace("${formName}", StringUtils.firstToLowerCase(this.nameParam.getContFormName()));
+//			content = content.replace("${formClassName}", this.nameParam.getContFormName());
+//			content = content.replace("${moduleDesc}", StringUtils.trim(this.table.getComment()));
+//			content = content.replace("${tableName}", StringUtils.trim(this.table.getTableName()));
+			
+			String regex = "\\$\\{[^}]*\\}";
+			Matcher matcher = Pattern.compile(regex).matcher(content);
+			while(matcher.find()) {
+				String group = matcher.group();
+				String replacement = StringUtils.trim(this.aliasVariableMap.get(group));
+				content = content.replace(group, replacement);
+			}
+			
 		}
 		return content;
 	}
+	
+	@Override
+	public AppClass getAppClassByVariable(String aliasValue) {
+		return this.classMap.get(aliasValue);
+	}
+
 	/**
 	 * 创建toString方法
 	 * @param appClass
@@ -642,24 +642,6 @@ public class AppTableContext {
 		return initAttrValueMethod;
 	}
 	
-	public boolean isFilterImport(String className) {
-		if (StringUtils.isEmpty(className)) {
-			return false;
-		}
-		return this.filterImportClasses.contains(className);
-	}
-	
-	public String getQualifiedClassName(String className) {
-		if (StringUtils.isEmpty(className)) {
-			return null;
-		}
-		String qualifiedClassName = this.qualifiedClassNameMap.get(className);
-		if (StringUtils.isEmpty(qualifiedClassName)) {
-			qualifiedClassName =  this.frameworkProvider.getQualifiedClassName(className);
-		}
-		return qualifiedClassName;
-	}
-	
 	public String getFrameworkPackage() {
 		return this.frameworkProvider.getFrameworkPackage();
 	}
@@ -704,11 +686,11 @@ public class AppTableContext {
 		this.appModule = appModule;
 	}
 
-	public AppTableNameParam getNameParam() {
+	public AppTableNameSpace getNameParam() {
 		return nameParam;
 	}
 
-	public void setNameParam(AppTableNameParam nameParam) {
+	public void setNameParam(AppTableNameSpace nameParam) {
 		this.nameParam = nameParam;
 	}
 	

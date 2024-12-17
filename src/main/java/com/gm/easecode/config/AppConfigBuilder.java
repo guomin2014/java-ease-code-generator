@@ -41,6 +41,8 @@ public class AppConfigBuilder {
 	private Boolean createSwagger;
 	/** 是否创建系统模块(有系统模块，就可以直接启动) */
 	private Boolean createSystemModule;
+	/** 是否创建启动相关文件代码 */
+	private Boolean createBootstrapFile;
 	/** 是否清除历史生成代码 */
 	private Boolean cleanOldCode;
 	/** 需要过滤的表 */
@@ -125,6 +127,11 @@ public class AppConfigBuilder {
 		return this;
 	}
 
+	public AppConfigBuilder createBootstrapFile(Boolean createBootstrapFile) {
+		this.createBootstrapFile = createBootstrapFile;
+		return this;
+	}
+
 	public AppConfigBuilder cleanOldCode(boolean cleanOldCode) {
 		this.cleanOldCode = cleanOldCode;
 		return this;
@@ -179,6 +186,9 @@ public class AppConfigBuilder {
 		}
 		if (createSystemModule != null) {
 			config.setCreateSystemModule(createSystemModule);
+		}
+		if (createBootstrapFile != null) {
+			config.setCreateBootstrapFile(createBootstrapFile);
 		}
 		if (cleanOldCode != null) {
 			config.setCleanOldCode(cleanOldCode);

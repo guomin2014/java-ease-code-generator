@@ -10,7 +10,7 @@ import com.gm.easecode.config.AppConfig;
  * 应用采用的配置文件
  *
  */
-public class AppTableNameParam {
+public class AppTableNameSpace {
 	/** 模块名称 */
 	private String moduleName;
 	/** 实体对象文件名称*/
@@ -23,10 +23,14 @@ public class AppTableNameParam {
 	private String daoName;
 	/** dao实现文件名 */
 	private String daoImplName;
+	/** dao的Annotation名 */
+	private String daoAnnotationName;
 	/** service接口文件名 */
 	private String serviceName;
 	/** service实现文件名 */
 	private String serviceImplName;
+	/** service的Annotation名 */
+	private String serviceAnnotationName;
 	/** controller文件名 */
 	private String controllerName;
 	/** form文件名 */
@@ -89,7 +93,8 @@ public class AppTableNameParam {
 	 * @param tableName    表名
 	 * @param module       表归属模块
 	 */
-	public AppTableNameParam(AppConfig config, String tableName, AppModule module) {
+	public AppTableNameSpace(AppNameSpace appNameSpace, String tableName, AppModule module) {
+		AppConfig config = appNameSpace.getConfig();
 		CodeStyleMode codeStyle = config.getCodeStyle();//编码风格，0：普通，1：Maven
         this.categoryNum = module.getNum();
         this.subModuleEnable = module.isSubModuleEnable();
@@ -107,8 +112,10 @@ public class AppTableNameParam {
 		ibatisName = com.gm.easecode.common.util.StringUtils.firstToLowerCase(moduleName) + ".xml";
 		daoName = moduleName + config.getDaoSuffix();
 		daoImplName = moduleName + config.getDaoImplSuffix();
+		daoAnnotationName = com.gm.easecode.common.util.StringUtils.firstToLowerCase(daoName);
 		serviceName = moduleName + config.getServiceSuffix();
 		serviceImplName = moduleName + config.getServiceImplSuffix();
+		serviceAnnotationName = com.gm.easecode.common.util.StringUtils.firstToLowerCase(serviceName);
 		controllerName = moduleName + config.getControllerSuffix();
 		contFormName = moduleName + config.getContFormSuffix();
 		controllerDtoReqName = moduleName + config.getControllerReqDtoSuffix();
@@ -144,60 +151,28 @@ public class AppTableNameParam {
 				}
 			}
 		}
-		String javaPath = "/src/main/java/";
-		String resourcePath = "/src/main/resources/";
-//		String webPath = "/src/main/webapp/";
-		String pkgRoot = config.getRootPackage();
-		String dataPath = "";
+		String pkgRoot = TableUtil.getPackage(config.getRootPackage(), subPackage);
+		String baseJavaPath = appNameSpace.getBaseJavaPath(categoryNum, category);
+		String baseResourcePath = appNameSpace.getBaseResourcePath(categoryNum, category);
 		sqlFileName = config.getProjectName() + ".sql." + config.getProjectMark();
 		sqlFilePath = StringUtils.appendIfMissing(config.getSqlFilePath() ,"/");
-		if(codeStyle == CodeStyleMode.MAVEN) {
-			pkgRoot = TableUtil.getPackage(pkgRoot, subPackage);
-			String projSrcPath = TableUtil.formatPath(dataPath + config.getProjSrcPath());
-			String srcBasePath = "";
-			if (config.isCodeGroupByModule()) {
-				srcBasePath = projSrcPath + categoryNum + "." + category;
-			}
-			entityPkgName = TableUtil.getPackage(pkgRoot, config.getEntityPathSpecs());// + "." + subSysPackageDistinguish;
-			daoPkgName = TableUtil.getPackage(pkgRoot, config.getDaoPathSpecs());// + "." + subSysPackageDistinguish;
-			servicePkgName = TableUtil.getPackage(pkgRoot, config.getServicePathSpecs());// + "." + subSysPackageDistinguish;
-			controllerPkgName = TableUtil.getPackage(pkgRoot, config.getControllerPathSpecs());// + "." + subSysPackageDistinguish;
-			controllerDtoPkgName = TableUtil.getPackage(controllerPkgName, config.getControllerDtoPathSpecs());// + "." + subSysPackageDistinguish;
-			entityPath = TableUtil.getPath(srcBasePath + javaPath, entityPkgName);
-			daoPath = TableUtil.getPath(srcBasePath + javaPath, daoPkgName);
-			servicePath = TableUtil.getPath(srcBasePath + javaPath, servicePkgName);
-			controllerPath = TableUtil.getPath(srcBasePath + javaPath, controllerPkgName);
-			controllerDtoPath = TableUtil.getPath(srcBasePath + javaPath, controllerDtoPkgName);
-			String sqlmapConfBasePath = TableUtil.getPath(srcBasePath + resourcePath, "");
-			ibatisConfPath = sqlmapConfBasePath + "sqlmap" + "/" + TableUtil.getEntityName(category) + "/";
-		} else {// 普通风格
-			pkgRoot = TableUtil.getPackage(pkgRoot, subPackage);
-			String projSrcPath = TableUtil.formatPath(dataPath + config.getProjSrcPath());
-			String projConfPath = TableUtil.formatPath(dataPath + config.getProjConfPath());
-			entityPkgName = pkgRoot + "." + config.getEntityPathSpecs();
-			daoPkgName = pkgRoot + "." + config.getDaoPathSpecs();
-			servicePkgName = pkgRoot + "." + config.getServicePathSpecs();
-			controllerPkgName = pkgRoot + "." + config.getControllerPathSpecs();
-			controllerDtoPkgName = controllerPkgName + "." + config.getControllerDtoPathSpecs();
-			String srcPath = "";
-			if (config.isCodeGroupByModule()) {
-				srcPath = projSrcPath + categoryNum + "." + category;
-			} else {
-				srcPath = projSrcPath;
-			}
-			String srcBasePath = TableUtil.getPath(srcPath, pkgRoot);
-			entityPath = srcBasePath + config.getEntityPathSpecs() + "/";
-			daoPath = srcBasePath + config.getDaoPathSpecs() + "/";
-			servicePath = srcBasePath + config.getServicePathSpecs() + "/";
-			controllerPath = srcBasePath + config.getControllerPathSpecs() + "/";
-			controllerDtoPath = srcBasePath + config.getControllerPathSpecs() + "/" + config.getControllerDtoPathSpecs() + "/";
-			if (config.getConfigStyle() == ConfigStyleMode.Annotation) {
-				ibatisConfPath = projConfPath + "sqlmap" + "/" + TableUtil.getEntityName(category) + "/";
-			} else {
-				String sqlmapConfBasePath = TableUtil.getPath(dataPath + config.getProjConfPath(), category);
-				ibatisConfPath = sqlmapConfBasePath + "dao" + "/" + config.getDaoImplPathSpecs() + "/";
-			}
+		entityPkgName = TableUtil.getPackage(pkgRoot, config.getEntityPathSpecs());
+		daoPkgName = TableUtil.getPackage(pkgRoot, config.getDaoPathSpecs());
+		servicePkgName = TableUtil.getPackage(pkgRoot, config.getServicePathSpecs());
+		controllerPkgName = TableUtil.getPackage(pkgRoot, config.getControllerPathSpecs());
+		controllerDtoPkgName = TableUtil.getPackage(controllerPkgName, config.getControllerDtoPathSpecs());
+		entityPath = TableUtil.getPath(baseJavaPath, entityPkgName);
+		daoPath = TableUtil.getPath(baseJavaPath, daoPkgName);
+		servicePath = TableUtil.getPath(baseJavaPath, servicePkgName);
+		controllerPath = TableUtil.getPath(baseJavaPath, controllerPkgName);
+		controllerDtoPath = TableUtil.getPath(baseJavaPath, controllerDtoPkgName);
+		String ibatisRelativePath = null;
+		if (codeStyle == CodeStyleMode.MAVEN || config.getConfigStyle() == ConfigStyleMode.Annotation) {
+			ibatisRelativePath = "sqlmap" + "/" + TableUtil.getEntityName(category) + "/";
+		} else {
+			ibatisRelativePath = "dao" + "/" + config.getDaoImplPathSpecs() + "/";
 		}
+		ibatisConfPath = baseResourcePath + ibatisRelativePath;
 		daoImplPkgName = daoPkgName + "." + config.getDaoImplPathSpecs();
 		serviceImplPkgName = servicePkgName + "." + config.getServiceImplPathSpecs();
 		daoImplPath = daoPath + config.getDaoImplPathSpecs() + "/";
@@ -231,6 +206,9 @@ public class AppTableNameParam {
 	public String getDaoImplName() {
 		return daoImplName;
 	}
+	public String getDaoAnnotationName() {
+		return daoAnnotationName;
+	}
 	public String getIbatisName() {
 		return ibatisName;
 	}
@@ -239,6 +217,9 @@ public class AppTableNameParam {
 	}
 	public String getServiceImplName() {
 		return serviceImplName;
+	}
+	public String getServiceAnnotationName() {
+		return serviceAnnotationName;
 	}
 	public String getControllerName() {
 		return controllerName;

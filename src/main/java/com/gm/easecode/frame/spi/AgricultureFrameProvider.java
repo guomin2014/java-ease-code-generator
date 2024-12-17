@@ -7,6 +7,7 @@ import java.util.Map;
 import com.gm.easecode.common.util.CustomStringBuilder;
 import com.gm.easecode.common.util.ObjectUtil;
 import com.gm.easecode.common.util.StringUtils;
+import com.gm.easecode.common.vo.AliasConstants;
 import com.gm.easecode.common.vo.AliasVO;
 import com.gm.easecode.common.vo.AppAnnotation;
 import com.gm.easecode.common.vo.AppClass;
@@ -18,6 +19,7 @@ import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.common.vo.FileAliasMode;
 import com.gm.easecode.frame.AbstractFrameworkProvider;
 import com.gm.easecode.frame.FrameworkProviderFactory;
+import com.gm.easecode.frame.common.FrameDependey;
 
 public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 
@@ -25,6 +27,8 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 	private String frameworkPackage = "";
 	/** 框架包Util路径 */
 	private String frameworkUtilPackage = "";
+	/** 框架包boot路径 */
+	private String frameworkBootPackage = "";
 	/** 框架包继承类路径 */
 	private String frameworkExtendsPackage = "";
 	/** 框架包继承Model类路径 */
@@ -51,6 +55,7 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 	
 	public void initPackage() {
 		this.frameworkPackage = "com.wisdom.agriculture";
+		this.frameworkBootPackage = this.frameworkPackage + ".boot";
 		this.frameworkUtilPackage = this.frameworkPackage + ".util";
 		this.frameworkExtendsPackage = this.frameworkPackage + ".framework";
 		this.frameworkExtendsModelPackage = this.frameworkExtendsPackage + ".model";
@@ -102,13 +107,16 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 		initBaseServiceClass("ICRUDCacheService", this.frameworkExtendsServicePackage, "Cache");
 		initBaseServiceImplClass("AbstractCRUDServiceImpl", this.frameworkExtendsServiceImplPackage, "Default");
 		initBaseServiceImplClass("AbstractCRUDCacheServiceImpl", this.frameworkExtendsServiceImplPackage, "Cache");
+		
+		initBaseBootstrapClass("BaseApplication", this.frameworkBootPackage, "Default");
 	}
 	
 	private void initBaseSubmeterDaoClass(String className, String packageName, String pkType) {
 		AppClass submeterDaoImplClass = initBaseDaoImplClass(className, packageName, pkType);
 		List<AppClassMethod> abstractMethods = new ArrayList<>();
 		AppClassMethodList getTableStrategyMethod = new AppClassMethodList("protected", "getTableStrategy", "TableStrategy", "获取分表策略");
-		getTableStrategyMethod.setBody(new AliasVO("return new TableStrategy(\"${tableName}\", ${tableStrategy});"));
+		getTableStrategyMethod.setBody(new AliasVO("return new TableStrategy(\"" + AliasConstants.generalAliasVariable(AliasConstants.MODULE_TABLE_NAME) + "\", " 
+		+ AliasConstants.generalAliasVariable(AliasConstants.MODULE_TABLE_STRATEGY) + ");"));
 		abstractMethods.add(getTableStrategyMethod);
 		AppClassMethodList getTableParamMethod = new AppClassMethodList("protected", "getTableParam", "TableParam", "根据实体和上下文获取分表表名");
 		getTableParamMethod.setBody("return new TableParam();");
@@ -127,10 +135,11 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 	 */
 	public AppClass getClassExtendsClass(AppClassDefinition classDefinition) {
 		String aliasName = classDefinition.getAliasName();
-		String baseClassKey = classDefinition.getBaseClassKey();
+		String pkType = classDefinition.getPkType();
 		boolean isTree = classDefinition.isTree();
 		boolean isSubmeter = classDefinition.isSubmeter();
 		int submeterTableStrategy = classDefinition.getSubmeterTableStrategy();
+		String baseClassKey = pkType;
 		FileAliasMode alias = FileAliasMode.getByName(aliasName);
 		if (alias == null) {
 			return null;
@@ -164,11 +173,10 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 			appClass = this.getExtClass(classMap, baseClassKey);
 			break;
 		case DaoImpl:
-			String daoKey = "Default";
 			if (isSubmeter) {
-				daoKey = "Submeter";
+				baseClassKey = "Submeter";
 			}
-			appClass = this.getExtClass(classMap, daoKey);
+			appClass = this.getExtClass(classMap, baseClassKey);
 			if (appClass != null && isSubmeter) {
 				try {
 					AppClass extendsClass = ObjectUtil.clone(appClass);
@@ -181,7 +189,7 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 									String aName = ((AliasVO)newMethod.getBody()).getAliasName();
 									if (StringUtils.isNotEmpty(aName)) {
 										String tableStrategy = this.getSubmeterTableStrategyEnumName(submeterTableStrategy);
-										aName = aName.replace("${tableStrategy}", StringUtils.trim(tableStrategy));
+										aName = aName.replace(AliasConstants.generalAliasVariable(AliasConstants.MODULE_TABLE_STRATEGY), StringUtils.trim(tableStrategy));
 										newMethod.setBody(aName);
 									}
 								}
@@ -204,6 +212,9 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 				classStyle = ControllerClassStyleMode.SPRING_MVC;
 			}
 			appClass = this.getExtClass(classMap, classStyle.name());
+			break;
+		case Bootstrap:
+			appClass = this.getExtClass(classMap, baseClassKey);
 			break;
 		default:
 			break;
@@ -228,14 +239,17 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 		}
 		switch (alias) {
 		case DaoImpl:
-			list.add(new AppAnnotation("Repository", new AliasVO("\"${daoName}\"")));
+			list.add(new AppAnnotation("Repository", new AliasVO("\"" + AliasConstants.generalAliasVariable(AliasConstants.DAO_ANNOTATION_NAME) + "\"")));
 			break;
 		case ServiceImpl:
-			list.add(new AppAnnotation("Service", new AliasVO("\"${serviceName}\"")));
+			list.add(new AppAnnotation("Service", new AliasVO("\"" + AliasConstants.generalAliasVariable(AliasConstants.SERVICE_ANNOTATION_NAME) + "\"")));
 			break;
 		case Controller:
 			list.add(new AppAnnotation("RestController"));
-			list.add(new AppAnnotation("RequestMapping", new AliasVO("\"${requestMappingPath}\"")));
+			list.add(new AppAnnotation("RequestMapping", new AliasVO("\"" + AliasConstants.generalAliasVariable(AliasConstants.CONTROLLER_REQUEST_MAPPING_PATH) + "\"")));
+			break;
+		case Bootstrap:
+			list.add(new AppAnnotation("SpringBootApplication"));
 			break;
 		default:
 			break;
@@ -258,8 +272,8 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 				AppClassConstructor controllerConstructor = new AppClassConstructor();
 				controllerConstructor.setModifiers("public");
 				CustomStringBuilder controllerConstructorBody = new CustomStringBuilder("");
-				controllerConstructorBody.appendTab(2).append("super.setFormClass(${formClassName}.class);").newLine();
-				controllerConstructorBody.appendTab(2).append("super.setModuleDesc(\"${moduleDesc}\");");
+				controllerConstructorBody.appendTab(2).append("super.setFormClass(" + AliasConstants.generalAliasVariable(AliasConstants.CONTROLLER_FORM_NAME) + ".class);").newLine();
+				controllerConstructorBody.appendTab(2).append("super.setModuleDesc(\"" + AliasConstants.generalAliasVariable(AliasConstants.MODULE_DESC) + "\");");
 				controllerConstructor.setBody(new AliasVO(controllerConstructorBody.toString()));
 				list.add(controllerConstructor);
 				break;
@@ -309,5 +323,11 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 		        break;
 		}
 		return tableStrategy;
+	}
+
+	@Override
+	public FrameDependey getFrameDependey() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

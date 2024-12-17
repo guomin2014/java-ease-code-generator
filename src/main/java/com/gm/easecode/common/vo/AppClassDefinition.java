@@ -4,8 +4,8 @@ public class AppClassDefinition {
 
 	/** 别名 */
 	private String aliasName;
-	/** 基类标识 */
-	private String baseClassKey;
+	/** 主键类型 */
+	private String pkType;
 	/** controller类代码风格 */
 	private ControllerClassStyleMode controllerClassStyle;
 	/** 是否是树形结构 */
@@ -19,13 +19,13 @@ public class AppClassDefinition {
 		this(aliasName, null, ControllerClassStyleMode.SPRING_MVC);
 	}
 	
-	public AppClassDefinition(String aliasName, String baseClassKey, ControllerClassStyleMode controllerClassStyle) {
-		this(aliasName, baseClassKey, controllerClassStyle, false, false, 0);
+	public AppClassDefinition(String aliasName, String pkType, ControllerClassStyleMode controllerClassStyle) {
+		this(aliasName, pkType, controllerClassStyle, false, false, 0);
 	}
 	
-	public AppClassDefinition(String aliasName, String baseClassKey, ControllerClassStyleMode controllerClassStyle, boolean isTree, boolean isSubmeter, int submeterTableStrategy) {
+	public AppClassDefinition(String aliasName, String pkType, ControllerClassStyleMode controllerClassStyle, boolean isTree, boolean isSubmeter, int submeterTableStrategy) {
 		this.aliasName = aliasName;
-		this.baseClassKey = baseClassKey;
+		this.pkType = pkType;
 		this.controllerClassStyle = controllerClassStyle;
 		this.isTree = isTree;
 		this.isSubmeter = isSubmeter;
@@ -38,11 +38,11 @@ public class AppClassDefinition {
 	public void setAliasName(String aliasName) {
 		this.aliasName = aliasName;
 	}
-	public String getBaseClassKey() {
-		return baseClassKey;
+	public String getPkType() {
+		return pkType;
 	}
-	public void setBaseClassKey(String baseClassKey) {
-		this.baseClassKey = baseClassKey;
+	public void setPkType(String pkType) {
+		this.pkType = pkType;
 	}
 	public boolean isTree() {
 		return isTree;

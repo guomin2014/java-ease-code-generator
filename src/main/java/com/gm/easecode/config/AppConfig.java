@@ -14,6 +14,8 @@ import com.gm.easecode.source.DataSource;
 public class AppConfig {
 	/** 应用名称 */
 	private String appName;
+	/** 应用描述 */
+	private String appDesc;
 	/** 字符集 */
 	private String charset = "UTF-8";
 	/** 版本 */
@@ -48,8 +50,13 @@ public class AppConfig {
 	private final String templetePath = "code/template/";
 	private final String builtInModulePath = templetePath + "module/";
 	
-	private final String ibatisXmlTpl = "ibatisXmlTemplete.tpl";
 	private final String classTpl = "classTemplete.tpl";
+	private final String ibatisXmlTpl = "ibatisXmlTemplete.tpl";
+	private final String applicationYmlTpl = "applicationYmlTemplete.tpl";
+	private final String applicationServiceYmlTpl = "applicationServiceYmlTemplete.tpl";
+	private final String applicationServiceDevYmlTpl = "applicationServiceDevYmlTemplete.tpl";
+	private final String logbackXmlTpl = "logbackXmlTemplete.tpl";
+	private final String pomXmlTpl = "pomXmlTemplete.tpl";
 	
 	private String entitySuffix = "Entity";
 	private String querySuffix = "Query";
@@ -62,6 +69,7 @@ public class AppConfig {
 	private String controllerReqDtoSuffix = "RequestDto";
 	private String controllerReqPageDtoSuffix = "RequestPageDto";
 	private String controllerRspDtoSuffix = "ResponseDto";
+	private String bootstrapSuffix = "Bootstrap";
 	
 	private String entityPathSpecs = "model";
 	private String daoPathSpecs = "dao";
@@ -97,6 +105,8 @@ public class AppConfig {
 	private boolean createSwagger = true;
 	/** 是否创建系统模块(有系统模块，就可以直接启动) */
 	private boolean createSystemModule = false;
+	/** 是否创建启动相关文件代码 */
+	private boolean createBootstrapFile = false;
 	/** 是否清除历史生成代码 */
 	private boolean cleanOldCode = true;
 	/** 项目名称 */
@@ -116,7 +126,8 @@ public class AppConfig {
 	public AppConfig(String appName, String companyPackage, String frameworkName, String frameworkVersion, DataSource dataSource, String codeSavePath) {
 		this(appName, companyPackage, frameworkName, frameworkVersion, ControllerClassStyleMode.JSON_MAPPING, dataSource, codeSavePath);
 	}
-	public AppConfig(String appName, String companyPackage, String frameworkName, String frameworkVersion, ControllerClassStyleMode controllerClassStyle, DataSource dataSource, String codeSavePath) {
+	public AppConfig(String appName, String companyPackage, String frameworkName, String frameworkVersion, ControllerClassStyleMode controllerClassStyle, 
+			DataSource dataSource, String codeSavePath) {
 		this.appName = appName;
 		this.companyPackage = companyPackage;
 		this.frameworkName = frameworkName;
@@ -155,6 +166,12 @@ public class AppConfig {
 		if (StringUtils.isEmpty(this.fileDate)) {
 			this.fileDate = DateUtils.getCurrDateTime(DateUtils.P_yyyy_MM_dd);
 		}
+	}
+	public String getAppDesc() {
+		return appDesc;
+	}
+	public void setAppDesc(String appDesc) {
+		this.appDesc = appDesc;
 	}
 	public String getTempletePath() {
 		return templetePath;
@@ -197,6 +214,21 @@ public class AppConfig {
 	}
 	public String getClassTpl() {
 		return this.getTempletePath() + classTpl;
+	}
+	public String getApplicationYmlTpl() {
+		return this.getTempletePath() + applicationYmlTpl;
+	}
+	public String getApplicationServiceYmlTpl() {
+		return this.getTempletePath() + applicationServiceYmlTpl;
+	}
+	public String getApplicationServiceDevYmlTpl() {
+		return this.getTempletePath() + applicationServiceDevYmlTpl;
+	}
+	public String getLogbackXmlTpl() {
+		return this.getTempletePath() + logbackXmlTpl;
+	}
+	public String getPomXmlTpl() {
+		return this.getTempletePath() + pomXmlTpl;
 	}
 	public String getEntitySuffix() {
 		return entitySuffix;
@@ -263,6 +295,12 @@ public class AppConfig {
 	}
 	public void setControllerRspDtoSuffix(String controllerRspDtoSuffix) {
 		this.controllerRspDtoSuffix = controllerRspDtoSuffix;
+	}
+	public String getBootstrapSuffix() {
+		return bootstrapSuffix;
+	}
+	public void setBootstrapSuffix(String bootstrapSuffix) {
+		this.bootstrapSuffix = bootstrapSuffix;
 	}
 	public String getEntityPathSpecs() {
 		return entityPathSpecs;
@@ -527,6 +565,11 @@ public class AppConfig {
 	}
 	public void setProjectMark(String projectMark) {
 		this.projectMark = projectMark;
+	}
+	public boolean isCreateBootstrapFile() {
+		return createBootstrapFile;
+	}
+	public void setCreateBootstrapFile(boolean createBootstrapFile) {
+		this.createBootstrapFile = createBootstrapFile;
 	} 
-	
 }

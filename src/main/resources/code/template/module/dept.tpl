@@ -14,18 +14,18 @@
 {"name": "createUserName", "desc":"创建用户", "type": "varchar(100)"},
 ]}
 --Entity-info#end--------
---Service-methods#agricultureframework#start--------
+--Service-methods#AgricultureFrame#start--------
 [{"name":"createDept", "desc":"为客户创建部门", "params": [{"name":"user","desc":"当前用户","type":"IUser"},{"name":"customerId","desc":"客户ID","type":"Long"},{"name":"customerName","desc":"客户名称","type":"String"}], "returnType":"DeptEntity", "throwsType":["AppException"]}]
---Service-methods#agricultureframework#end--------
---Service-methods#gmframework#start--------
+--Service-methods#AgricultureFrame#end--------
+--Service-methods#JavaEaseFrame#start--------
 [{"name":"createDept", "desc":"为客户创建部门", "params": [{"name":"user","desc":"当前用户","type":"IUser"},{"name":"customerId","desc":"客户ID","type":"Long"},{"name":"customerName","desc":"客户名称","type":"String"}], "returnType":"DeptEntity", "throwsType":["BusinessException"]}]
---Service-methods#gmframework#end--------
---ServiceImpl-imports#agricultureframework#start--------
+--Service-methods#JavaEaseFrame#end--------
+--ServiceImpl-imports#AgricultureFrame#start--------
 ["AppException","Context","IUser"]
---ServiceImpl-imports#agricultureframework#end--------
---ServiceImpl-imports#gmframework#start--------
-["BusinessException","Context","IUser"]
---ServiceImpl-imports#gmframework#end--------
+--ServiceImpl-imports#AgricultureFrame#end--------
+--ServiceImpl-imports#JavaEaseFrame#start--------
+["List","ArrayList","BusinessException","Context","IUser","PageInfo","com.gm.javaeaseframe.common.util.DataUtil","com.gm.javaeaseframe.common.util.StringUtils","org.springframework.beans.BeanUtils","${ModuleQueryName}"]
+--ServiceImpl-imports#JavaEaseFrame#end--------
 --ServiceImpl-fields#start--------
 	/**
      * 系统平台组织架构以10开头
@@ -39,15 +39,55 @@
      * 企业客户的根级部门ID
      */
     private final Long COMPANY_ROOT_ID = 20001L;
+    
+    public static enum DataSatusEnum {
+    	DISENABLE(0, "禁用"), ENABLE(1, "启用"), DELETE(9, "已删除");
+    	
+    	private int value;
+    	private String desc;
+    	DataSatusEnum(int value, String desc) {
+    		this.value = value;
+    		this.desc = desc;
+    	}
+		public int getValue() {
+			return value;
+		}
+		public String getDesc() {
+			return desc;
+		}
+    }
 --ServiceImpl-fields#end--------
 --ServiceImpl-methods#start--------
-	protected void saveBefore(DeptEntity entity, Context context) throws AppException {
+	@Override
+	protected DeptEntity findBefore(DeptEntity params, Context context) throws BusinessException {
+		if (params == null) {
+			return params;
+		}
+		DeptQuery query = null;
+		if (params instanceof DeptQuery) {
+			query = (DeptQuery)params;
+		} else {
+			query = new DeptQuery();
+			BeanUtils.copyProperties(params, query);
+		}
+		List<Integer> statusList = new ArrayList<Integer>();
+		statusList.add(DataSatusEnum.ENABLE.getValue());
+		statusList.add(DataSatusEnum.DISENABLE.getValue());
+		query.setStatusList(statusList);
+		return query;
+	}
+
+	@Override
+	protected DeptEntity findBefore(DeptEntity params, PageInfo pageInfo, Context context) throws BusinessException {
+		return this.findBefore(params, context);
+	}
+	protected void saveBefore(DeptEntity entity, Context context) throws ${Exception} {
         DeptEntity parentDept = dao.get(entity.getParentId());
         if (parentDept == null) {
-            throw new AppException("未选择上级部门");
+            throw new ${Exception}("未选择上级部门");
         }
         if(entity.getStatus() != null && entity.getStatus()==DataSatusEnum.DELETE.getValue()) {
-        	 throw new AppException("已删除部门不能编辑");
+        	 throw new ${Exception}("已删除部门不能编辑");
         }
         int currLevel = DataUtil.conver2Int(parentDept.getLevel()) + 1;
         String idFix = parentDept.getId().toString();
@@ -73,7 +113,7 @@
 		for(DeptEntity dept : dbentitys)
 		{
 			if(null== dept.getId() || !dept.getId().equals(entity.getId())) {
-				throw new AppException("部门名称已存在");
+				throw new ${Exception}("部门名称已存在");
 			}
 		}
 		
@@ -83,7 +123,7 @@
         super.saveBefore(entity, context);
     }
     
-    protected void updateAfter(DeptEntity entity, Context context) throws AppException {
+    protected void updateAfter(DeptEntity entity, Context context) throws ${Exception} {
     	//更新子节点状态
     	if(entity.getStatus() != null && entity.getStatus()==DataSatusEnum.DISENABLE.getValue()) {
     		updateDepStatus(entity.getId(),DataSatusEnum.DISENABLE.getValue(), context);
@@ -91,7 +131,7 @@
     	super.updateAfter(entity, context);
     }
     
-    public int remove(Long[] ids, Context context) throws AppException {
+    public int remove(Long[] ids, Context context) throws ${Exception} {
     	int count = 0;
     	for(Long id : ids){
     		count+= updateDepStatus(id,DataSatusEnum.DELETE.getValue(), context);
@@ -128,7 +168,7 @@
 		return size;
     }
     
-    public DeptEntity createDept(IUser currUser, Long customerId, String customerName) throws AppException {
+    public DeptEntity createDept(IUser currUser, Long customerId, String customerName) throws ${Exception} {
         if (customerId == null || customerId.longValue() == 0) {
             return null;
         }
@@ -142,17 +182,19 @@
         entity.setId(customerId);
         entity.setParentId(COMPANY_ROOT_ID);
         entity.setName(customerName);
-        entity.setCreateTime(new Date());
+        entity.setCreateTime(System.currentTimeMillis());
         if (currUser != null) {
-            entity.setCreateUser(currUser.getLoginName());
+            entity.setCreateUserId(currUser.getId());
             entity.setCreateUserName(currUser.getRealName());
         }
         return super.save(entity, null);
     }
 --ServiceImpl-methods#end--------
---Controller-methods#start--------
-protected void doListBefore(HttpServletRequest request, HttpServletResponse response, DeptForm form,
-    		Map<String, Object> model, Context context) throws AppException {
+--Controller-imports#JavaEaseFrame#start--------
+--Controller-imports#JavaEaseFrame#end--------
+--Controller-methods#AgricultureFrame#start--------
+protected void doListBefore(HttpServletRequest request, HttpServletResponse response, ${ControllerFormName} form,
+    		Map<String, Object> model, Context context) throws ${Exception} {
     	List<Integer> statusList = new ArrayList<Integer>();
     	statusList.add(DataSatusEnum.ENABLE.getValue());
     	statusList.add(DataSatusEnum.DISENABLE.getValue());
@@ -160,7 +202,7 @@ protected void doListBefore(HttpServletRequest request, HttpServletResponse resp
     	super.doListBefore(request, response, form, model, context);
     }
     
-    protected void init(HttpServletRequest request, HttpServletResponse response, DeptForm form,
+    protected void init(HttpServletRequest request, HttpServletResponse response, ${ControllerFormName} form,
     		Map<String, Object> model, Context context) {
     	Map<String,Object> statsus = new HashMap<String,Object>();
     	statsus.put("status", DataSatusEnum.getEnumMap(DataSatusEnum.DELETE.getValue()));
@@ -169,10 +211,10 @@ protected void doListBefore(HttpServletRequest request, HttpServletResponse resp
     }
   
     @Override
-    protected void saveBefore(HttpServletRequest request, HttpServletResponse response, DeptForm form,
-    		Map<String, Object> model, Context context) throws AppException {
+    protected void saveBefore(HttpServletRequest request, HttpServletResponse response, ${ControllerFormName} form,
+    		Map<String, Object> model, Context context) throws ${Exception} {
     	if(null==form.getEntity().getName()) {
-    		throw new AppException("部门名称不能为空");
+    		throw new BusinessException("部门名称不能为空");
     	}
     	super.saveBefore(request, response, form, model, context);
     }
@@ -185,7 +227,7 @@ protected void doListBefore(HttpServletRequest request, HttpServletResponse resp
      * @return
      */
     @RequestMapping(value="user/list")
-    public String userList(HttpServletRequest request, HttpServletResponse response,DeptForm form) {
+    public String userList(HttpServletRequest request, HttpServletResponse response, ${ControllerFormName} form) {
     	JSONObject ret = new JSONObject();
         try {
         	Map<String, Object> model = new HashMap<String, Object>();
@@ -235,16 +277,19 @@ protected void doListBefore(HttpServletRequest request, HttpServletResponse resp
      * @return
      */
     @RequestMapping(value="user/add")
-    public String userAdd(HttpServletRequest request, HttpServletResponse response,@RequestParam Long depId, @PathVariable Long userId) {
+    public String userAdd(HttpServletRequest request, HttpServletResponse response,String data) {
     	JSONObject ret = new JSONObject();
         try {
+        	JSONObject requestData = JSONObject.parseObject(data);
+        	Long depId = requestData.getLong("deptId");
+        	Long userId = requestData.getLong("userId");
         	DeptEntity deptEntity = this.service.get(depId, getContext());
         	if(null==deptEntity) {
-        		throw new AppException("部门不存在！");
+        		throw new ${Exception}("部门不存在！");
         	}
         	UserEntity user = userservice.get(userId, getContext());
         	if(null==user) {
-        		throw new AppException("用户不存在！");
+        		throw new ${Exception}("用户不存在！");
         	}
         	Set<String> deps =  new HashSet<String>();
 //        	if(StringUtils.isEmpty(user.getDeptIds()));
@@ -270,16 +315,19 @@ protected void doListBefore(HttpServletRequest request, HttpServletResponse resp
      * @return
      */
     @RequestMapping(value="user/delete")
-    public String userEdit(HttpServletRequest request, HttpServletResponse response,@RequestParam Long depId, @PathVariable Long userId) {
+    public String userEdit(HttpServletRequest request, HttpServletResponse response, String data) {
     	JSONObject ret = new JSONObject();
         try {
+        	JSONObject requestData = JSONObject.parseObject(data);
+        	Long depId = requestData.getLong("deptId");
+        	Long userId = requestData.getLong("userId");
         	DeptEntity deptEntity = this.service.get(depId, getContext());
         	if(null==deptEntity) {
-        		throw new AppException("部门不存在！");
+        		throw new ${Exception}("部门不存在！");
         	}
         	UserEntity user = userservice.get(userId, getContext());
         	if(null==user) {
-        		throw new AppException("用户不存在！");
+        		throw new ${Exception}("用户不存在！");
         	}
 //        	Set<String> deps =  new HashSet<String>();
 //        	if(StringUtils.isEmpty(user.getDeptIds()));
@@ -297,4 +345,7 @@ protected void doListBefore(HttpServletRequest request, HttpServletResponse resp
         }
         return ret.toJSONString();
     }
---Controller-methods#end--------
+--Controller-methods#AgricultureFrame#end--------
+
+--Controller-methods#JavaEaseFrame#start--------
+--Controller-methods#JavaEaseFrame#end--------

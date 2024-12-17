@@ -19,6 +19,7 @@ public enum FileAliasMode {
 	Service(11, "Service对象"),
 	ServiceImpl(12, "Service实现对象"),
 	Controller(13, "Controller对象"), 
+	Bootstrap(14, "Bootstrap对象"), 
 	;
 
 	private int value;
