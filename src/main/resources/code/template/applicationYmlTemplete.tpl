@@ -12,7 +12,3 @@ info:
   desc: "@project.description@"
   version: "@project.version@"
   ip: ${spring.cloud.client.ip-address}:${server.port}
-application:
-  log:
-    level: "@profiles.log.level@"
-    path: "@profiles.log.path@"

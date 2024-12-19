@@ -1,7 +1,7 @@
 spring:
   http:
     encoding:
-      charset: utf-8
+      charset: UTF-8
       enabled: true
       force: true
   servlet:
@@ -10,27 +10,7 @@ spring:
       max-request-size: 100MB
 server:
   tomcat:
-    uri-encoding: utf-8
-knife4j:
-  enable: true
-  # 开启Swagger的Basic认证功能,默认是false
-  basic:
-      enable: true
-      # Basic认证用户名
-      username: admin
-      # Basic认证密码
-      password: 123456
-  openapi:
-    title: JavaEaseFrame框架-demo项目
-    description: "这是应用的描述信息"
-    email: guomin@javaeaseframe.com
-    concat: guomin
-    group:
-      group1:
-        group-name: 分组名称
-        api-rule: package
-        api-rule-resources:
-          - ${RootPackage}
+    uri-encoding: UTF-8
 javaeaseframe:
   interceptor:
     login:
@@ -71,3 +51,20 @@ javaeaseframe:
       - name: "*"
         propagation: "SUPPORTS"
         readOnly: true
+  knife4j:
+    enable: true
+    basic:
+      enable: true
+      username: admin
+      password: 123456
+    openapi:
+      title: JavaEaseFrame框架-demo项目
+      description: "这是应用的描述信息"
+      email: guomin@javaeaseframe.com
+      concat: guomin
+      group:
+        group1:
+          group-name: 分组名称
+          api-rule: package
+          api-rule-resources:
+            - ${RootPackage}
