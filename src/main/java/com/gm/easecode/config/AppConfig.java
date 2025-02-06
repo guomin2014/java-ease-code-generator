@@ -148,7 +148,7 @@ public class AppConfig {
 			String[] packs = companyPackage.split("\\.");//[0]:com或org,[1]:公司标识，[2]:应用标识
 			name = packs[packs.length-1];
 			if (StringUtils.isEmpty(this.tableNamePrefix) && packs.length >= 3) {
-				this.tableNamePrefix = packs[1] + "_" + packs[2] + "_";
+				this.tableNamePrefix = packs[packs.length-2] + "_" + packs[packs.length-1] + "_";
 			}
 		} else {
 			if (StringUtils.isNotEmpty(appName)) {

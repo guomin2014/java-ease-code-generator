@@ -18,17 +18,17 @@ javaeaseframe:
     auth:
       enable: false
     log:
-      enable: true
-      fetchFromNativeRequestEnable: true
-      printRequestUser: true
-      printRequestBody: true
-      printResponseBody: true
-      printPosition: beforeAndAfter
+      printPosition:
+        beforeAdvice:
+          enable: false
+        afterAdvice:
+          enable: true
+          format: statMOD=${MOD} statPV=${PV} statIP=${IP} statURL=${URL} statDuration=${Duration} ${Message}
   web:
     cors:
       enable: true
     cacheBody:
-      enable: false
+      enable: true
   mybatis:
     root-path: ${RootPackage}
     type-aliases-package: ${RootPackage}.**.model

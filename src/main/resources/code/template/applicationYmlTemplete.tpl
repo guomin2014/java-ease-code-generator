@@ -5,8 +5,8 @@ spring:
     active: "dev"
   config:
     import: 
-      - classpath:${spring.application.name}.yml
-      - classpath:${spring.application.name}-${spring.profiles.active}.yml
+      - classpath:application-${spring.application.name}.yml
+      - classpath:application-${spring.application.name}-${spring.profiles.active}.yml
 info:
   name: ${spring.application.name}
   desc: "@project.description@"

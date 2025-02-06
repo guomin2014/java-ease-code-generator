@@ -1,7 +1,7 @@
 /**
-* 文件：${fileName}
-* 版本：${version}
-* 日期：${date}
+* file:		${fileName}
+* version:	${version}
+* date:		${date}
 * Copyright &reg; ${copyright}
 * All right reserved.
 */

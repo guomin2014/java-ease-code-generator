@@ -67,9 +67,9 @@ public class AppNameSpace {
 		this.applicationYmlFilePath = baseResourcePath;
 		this.applicationYmlFileName = "application.yml";
 		this.applicationServiceYmlFilePath = baseResourcePath;
-		this.applicationServiceYmlFileName = config.getAppName() + ".yml";
+		this.applicationServiceYmlFileName = "application-" + config.getAppName() + ".yml";
 		this.applicationServiceDevYmlFilePath = baseResourcePath;
-		this.applicationServiceDevYmlFileName = config.getAppName() + "-dev" + ".yml";
+		this.applicationServiceDevYmlFileName = "application-" + config.getAppName() + "-dev" + ".yml";
 		this.logbackXmlFilePath = baseResourcePath;
 		this.logbackXmlFileName = "logback-spring.xml";
 		this.pomXmlFilePath = TableUtil.formatPath(javaPathPrefix);
