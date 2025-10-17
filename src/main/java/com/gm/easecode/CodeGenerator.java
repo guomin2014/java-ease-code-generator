@@ -18,14 +18,14 @@ public class CodeGenerator {
 				.setCompanyPackage("com.uniops.framework")// 应用父级包结构，默认com.gm，将与appName组合成完成父级包路径，比如：com.gm.appname
 				.setFramework(FrameworkProviderFactory.FrameworkProviderMode.UniopsFrame)// 基础框架
 				.setControllerClassStyle(ControllerClassStyleMode.DTO_MAPPING)// Controller类风格
-				.createSystemModule(true)// 是否创建系统模块，如是，则添加整个应用启动的相关配置，且可直接运行
+				.createSystemModule(true)// 是否创建系统模块，包含部门管理、用户管理模块
 				.createEntityFile(true)// 是否创建实体文件代码（model与xml）
 				.createDaoFile(true)// 是否创建dao代码
 				.createServiceFile(true)// 是否创建service代码
 				.createControllerFile(true)// 是否创建controller代码(包含dto代码)
 				.createSwagger(true)// 是否生成swagger注解，如是，则在dto中添加注解
 				.createSqlFile(true)// 是否创建sql文件
-				.createBootstrapFile(true)//是否创建启动文件
+				.createBootstrapFile(true)//是否创建启动文件，如是，则添加整个应用启动的相关配置，且可直接运行
 				.cleanOldCode(false)//是否清除历史生成代码
 			    .addModule(new AppModuleGroupBuilder().forName("集群管理").forIdentify("cluster").forSubModuleEnable(true).forTables("javaeaseframe_demo_cluster,javaeaseframe_demo_cluster_node").build())
 			    .addModule(new AppModuleGroupBuilder().forName("任务管理").forIdentify("task").forSubModuleEnable(true).forTables("javaeaseframe_demo_task").build())

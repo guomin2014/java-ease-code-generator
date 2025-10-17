@@ -7,8 +7,8 @@ import com.gm.easecode.common.vo.AppClass;
 import com.gm.easecode.common.vo.AppClassConstructor;
 import com.gm.easecode.common.vo.AppClassDefinition;
 import com.gm.easecode.common.vo.AppModuleGroup;
-import com.gm.easecode.common.vo.AppNameSpace;
 import com.gm.easecode.common.vo.AppModuleNameSpace;
+import com.gm.easecode.common.vo.AppNameSpace;
 import com.gm.easecode.config.AppConfig;
 import com.gm.easecode.frame.common.FrameDependey;
 
@@ -23,10 +23,15 @@ public interface FrameworkProvider {
 	 */
 	String getFrameworkPackage();
 	/**
+	 * 获取应用配置
+	 * @return
+	 */
+	AppConfig getAppConfig();
+	/**
 	 * 获取应用命名空间规则
 	 * @return
 	 */
-	AppNameSpace getAppNameSpace(AppConfig config);
+	AppNameSpace getAppNameSpace();
 	/**
 	 * 获取应用模块的命名空间规则
 	 * @param appNameSpace	应用命名规则

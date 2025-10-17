@@ -45,9 +45,9 @@ public class AppModuleContext extends AppClassHandler{
 	
 	private Map<String, String> aliasVariableMap;
 	
-	public AppModuleContext(FrameworkProvider frameworkProvider, AppNameSpace appNameSpace, AppModule table, AppModuleGroup appModuleGroup) {
+	public AppModuleContext(FrameworkProvider frameworkProvider, AppModule table, AppModuleGroup appModuleGroup) {
 		this.frameworkProvider = frameworkProvider;
-		this.appNameSpace = appNameSpace;
+		this.appNameSpace = frameworkProvider.getAppNameSpace();
 		this.config = appNameSpace.getConfig();
 		this.table = table;
 		this.appModuleGroup = appModuleGroup;

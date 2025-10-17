@@ -22,6 +22,7 @@ import com.gm.easecode.common.vo.AppNameSpace;
 import com.gm.easecode.common.vo.AppModuleNameSpace;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.common.vo.FileAliasMode;
+import com.gm.easecode.config.AppConfig;
 import com.gm.easecode.frame.AbstractFrameworkProvider;
 import com.gm.easecode.frame.FrameworkProviderFactory;
 import com.gm.easecode.frame.common.Dependey;
@@ -57,14 +58,10 @@ public class UniopsFrameProvider extends AbstractFrameworkProvider {
 	
 	private FrameDependey frameDependey;
 	
-	public UniopsFrameProvider() {
-		super(FrameworkProviderFactory.FrameworkProviderMode.UniopsFrame.getName(), FrameworkProviderFactory.FrameworkProviderMode.UniopsFrame.getVersion());
-		this.initPackage();
-		this.initQualifiedClassName();
-		this.initBaseClass();
-		this.initFrameDependey();
+	public UniopsFrameProvider(AppConfig config) {
+		super(config, FrameworkProviderFactory.FrameworkProviderMode.UniopsFrame.getName(), FrameworkProviderFactory.FrameworkProviderMode.UniopsFrame.getVersion());
 	}
-	public void initPackage() {
+	public void initFramePackage() {
 		this.frameworkPackage = "com.uniops.framework";
 		this.frameworkCommonPackage = this.frameworkPackage + ".common";
 		this.frameworkCorePackage = this.frameworkPackage + ".core";
@@ -78,7 +75,7 @@ public class UniopsFrameProvider extends AbstractFrameworkProvider {
 		this.frameworkExtendsWebPackage = this.frameworkExtendsPackage + ".web";
 		this.frameworkExtendsWebDtoPackage = this.frameworkExtendsPackage + ".dto";
 	}
-	public void initQualifiedClassName() {
+	public void initFrameQualifiedClassName() {
 		//添加框架常用全量类路径
 		addQualifiedClassName("Context", this.frameworkExtendsModelPackage + ".Context");
 		addQualifiedClassName("PageInfo", this.frameworkExtendsModelPackage + ".PageInfo");
@@ -90,7 +87,7 @@ public class UniopsFrameProvider extends AbstractFrameworkProvider {
 		addQualifiedClassName("CustomApiModelProperty", this.frameworkCommonPackage + ".annotation.CustomApiModelProperty");
 	}
 	
-	public void initBaseClass() {
+	public void initFrameBaseClass() {
 		this.initBaseEntityClass("BaseEntity", this.frameworkExtendsModelPackage, "PK", "Default");
 		this.initBaseEntityClass("BaseEntityInt", this.frameworkExtendsModelPackage, "Integer");
 		this.initBaseEntityClass("BaseEntityLong", this.frameworkExtendsModelPackage, "Long");
@@ -142,7 +139,7 @@ public class UniopsFrameProvider extends AbstractFrameworkProvider {
 		appClass.setMethods(methods);
 	}
 	
-	private void initFrameDependey() {
+	public void initFrameDependey() {
 		Dependey dependey = new Dependey("uniops", "uniops-framework-parent", "1.0.0-SNAPSHOT");
 		Map<String, Dependey> dependencyMap = new LinkedHashMap<>();
 		dependencyMap.put("guava", new Dependey("com.google.guava", "guava"));

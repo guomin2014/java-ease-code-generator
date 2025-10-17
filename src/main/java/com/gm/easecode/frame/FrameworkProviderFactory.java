@@ -1,5 +1,6 @@
 package com.gm.easecode.frame;
 
+import com.gm.easecode.config.AppConfig;
 import com.gm.easecode.frame.spi.AgricultureFrameProvider;
 import com.gm.easecode.frame.spi.JavaEaseFrameProvider;
 import com.gm.easecode.frame.spi.UniopsFrameProvider;
@@ -82,9 +83,11 @@ public class FrameworkProviderFactory {
 //        return classes;
 //	}
 
-	public static FrameworkProvider createFrameworkProvider(String frameworkName, String frameworkVersion) {
+	public static FrameworkProvider createFrameworkProvider(AppConfig config) {
 //		String frameKey = frameworkName + "#" + frameworkVersion;
 //		return providerMap.get(frameKey);
+		String frameworkName = config.getFrameworkName();
+		String frameworkVersion = config.getFrameworkVersion();
 		FrameworkProviderMode providerEnum = FrameworkProviderMode.getFrameworkProvider(frameworkName, frameworkVersion);
 		if (providerEnum == null) {
 			return null;
@@ -92,13 +95,13 @@ public class FrameworkProviderFactory {
 		FrameworkProvider provider = null;
 		switch (providerEnum) {
 		case JavaEaseFrame:
-			provider = new JavaEaseFrameProvider();
+			provider = new JavaEaseFrameProvider(config);
 			break;
 		case AgricultureFrame:
-			provider = new AgricultureFrameProvider();
+			provider = new AgricultureFrameProvider(config);
 			break;
 		case UniopsFrame:
-			provider = new UniopsFrameProvider();
+			provider = new UniopsFrameProvider(config);
 			break;
 		}
 		return provider;

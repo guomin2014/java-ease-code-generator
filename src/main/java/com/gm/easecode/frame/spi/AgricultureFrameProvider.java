@@ -17,6 +17,7 @@ import com.gm.easecode.common.vo.AppClassMethod;
 import com.gm.easecode.common.vo.AppClassMethodList;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.common.vo.FileAliasMode;
+import com.gm.easecode.config.AppConfig;
 import com.gm.easecode.frame.AbstractFrameworkProvider;
 import com.gm.easecode.frame.FrameworkProviderFactory;
 import com.gm.easecode.frame.common.FrameDependey;
@@ -46,14 +47,11 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 	/** 框架包继承WebDto类路径 */
 	private String frameworkExtendsWebDtoPackage = "";
 	
-	public AgricultureFrameProvider() {
-		super(FrameworkProviderFactory.FrameworkProviderMode.AgricultureFrame.getName(), FrameworkProviderFactory.FrameworkProviderMode.AgricultureFrame.getVersion());
-		this.initPackage();
-		this.initQualifiedClassName();
-		this.initBaseClass();
+	public AgricultureFrameProvider(AppConfig config) {
+		super(config, FrameworkProviderFactory.FrameworkProviderMode.AgricultureFrame.getName(), FrameworkProviderFactory.FrameworkProviderMode.AgricultureFrame.getVersion());
 	}
 	
-	public void initPackage() {
+	public void initFramePackage() {
 		this.frameworkPackage = "com.wisdom.agriculture";
 		this.frameworkBootPackage = this.frameworkPackage + ".boot";
 		this.frameworkUtilPackage = this.frameworkPackage + ".util";
@@ -67,7 +65,7 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 		this.frameworkExtendsWebDtoPackage = this.frameworkExtendsPackage + ".web.dto";
 	}
 	
-	public void initQualifiedClassName() {
+	public void initFrameQualifiedClassName() {
 		addQualifiedClassName("AppException", this.frameworkExtendsPackage + ".exception.AppException");
 		addQualifiedClassName("Context", this.frameworkExtendsModelPackage + ".Context");
 		addQualifiedClassName("IUser", this.frameworkExtendsServicePackage + ".IUser");
@@ -75,7 +73,7 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 		addQualifiedClassName("StringUtils", this.frameworkUtilPackage + ".StringUtils");
 	}
 	
-	public void initBaseClass() {
+	public void initFrameBaseClass() {
 		this.initBaseEntityClass("BaseEntity", this.frameworkExtendsModelPackage, "PK", "Default");
 		this.initBaseEntityClass("BaseEntityInt", this.frameworkExtendsModelPackage, "Integer");
 		this.initBaseEntityClass("BaseEntityLong", this.frameworkExtendsModelPackage, "Long");
@@ -109,6 +107,11 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 		initBaseServiceImplClass("AbstractCRUDCacheServiceImpl", this.frameworkExtendsServiceImplPackage, "Cache");
 		
 		initBaseBootstrapClass("BaseApplication", this.frameworkBootPackage, "Default");
+	}
+	
+	@Override
+	public void initFrameDependey() {
+		
 	}
 	
 	private void initBaseSubmeterDaoClass(String className, String packageName, String pkType) {
@@ -327,7 +330,7 @@ public class AgricultureFrameProvider extends AbstractFrameworkProvider {
 
 	@Override
 	public FrameDependey getFrameDependey() {
-		// TODO Auto-generated method stub
 		return null;
 	}
+
 }

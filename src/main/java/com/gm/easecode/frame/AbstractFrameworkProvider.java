@@ -25,11 +25,18 @@ public abstract class AbstractFrameworkProvider implements FrameworkProvider {
 	private String frameworkName;
 	/** 框架版本 */
 	private String frameworkVersion;
+	/** 应用配置 */
+	private AppConfig config;
+	/** 应用命名规则 */
+	private AppNameSpace appNameSpace;
 	
-	public AbstractFrameworkProvider(String frameworkName, String frameworkVersion) {
+	public AbstractFrameworkProvider(AppConfig config, String frameworkName, String frameworkVersion) {
+		this.config = config;
 		this.frameworkName = frameworkName;
 		this.frameworkVersion = frameworkVersion;
 		this.initCommonQualifiedClassName();
+		this.initFrame();
+		this.initAppNameSpace();
 	}
 	
 	public String getFrameworkName() {
@@ -47,6 +54,23 @@ public abstract class AbstractFrameworkProvider implements FrameworkProvider {
 	public void setFrameworkVersion(String frameworkVersion) {
 		this.frameworkVersion = frameworkVersion;
 	}
+	/**
+	 * 初始化框架
+	 */
+	public void initFrame() {
+		this.initFramePackage();
+		this.initFrameQualifiedClassName();
+		this.initFrameBaseClass();
+		this.initFrameDependey();
+	}
+	
+	public abstract void initFramePackage();
+	
+	public abstract void initFrameQualifiedClassName();
+	
+	public abstract void initFrameBaseClass();
+	
+	public abstract void initFrameDependey();
 
 	private void initCommonQualifiedClassName() {
 		addQualifiedClassName("Repository", "org.springframework.stereotype.Repository");
@@ -61,12 +85,21 @@ public abstract class AbstractFrameworkProvider implements FrameworkProvider {
 		AppContext.addQualifiedClassName(className, qualifiedClassName);
 	}
 	
-	
-	@Override
-	public AppNameSpace getAppNameSpace(AppConfig config) {
+	public void initAppNameSpace() {
 		AppNameSpace appNameSpace = new AppNameSpace(config);
 		appNameSpace.setFrameDependey(this.getFrameDependey());
-		return appNameSpace;
+		this.appNameSpace = appNameSpace;
+	}
+	
+	
+	@Override
+	public AppConfig getAppConfig() {
+		return this.config;
+	}
+
+	@Override
+	public AppNameSpace getAppNameSpace() {
+		return this.appNameSpace;
 	}
 
 	@Override

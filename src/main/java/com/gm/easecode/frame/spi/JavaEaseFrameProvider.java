@@ -18,6 +18,7 @@ import com.gm.easecode.common.vo.AppClassMethodList;
 import com.gm.easecode.common.vo.AppClassMethodParam;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.common.vo.FileAliasMode;
+import com.gm.easecode.config.AppConfig;
 import com.gm.easecode.frame.AbstractFrameworkProvider;
 import com.gm.easecode.frame.FrameworkProviderFactory;
 import com.gm.easecode.frame.common.Dependey;
@@ -53,14 +54,10 @@ public class JavaEaseFrameProvider extends AbstractFrameworkProvider {
 	
 	private FrameDependey frameDependey;
 	
-	public JavaEaseFrameProvider() {
-		super(FrameworkProviderFactory.FrameworkProviderMode.JavaEaseFrame.getName(), FrameworkProviderFactory.FrameworkProviderMode.JavaEaseFrame.getVersion());
-		this.initPackage();
-		this.initQualifiedClassName();
-		this.initBaseClass();
-		this.initFrameDependey();
+	public JavaEaseFrameProvider(AppConfig config) {
+		super(config, FrameworkProviderFactory.FrameworkProviderMode.JavaEaseFrame.getName(), FrameworkProviderFactory.FrameworkProviderMode.JavaEaseFrame.getVersion());
 	}
-	public void initPackage() {
+	public void initFramePackage() {
 		this.frameworkPackage = "com.gm.javaeaseframe";
 		this.frameworkCommonPackage = this.frameworkPackage + ".common";
 		this.frameworkCorePackage = this.frameworkPackage + ".core";
@@ -74,7 +71,7 @@ public class JavaEaseFrameProvider extends AbstractFrameworkProvider {
 		this.frameworkExtendsWebPackage = this.frameworkExtendsPackage + ".web";
 		this.frameworkExtendsWebDtoPackage = this.frameworkExtendsPackage + ".web.dto";
 	}
-	public void initQualifiedClassName() {
+	public void initFrameQualifiedClassName() {
 		//添加框架常用全量类路径
 		addQualifiedClassName("Context", this.frameworkExtendsModelPackage + ".Context");
 		addQualifiedClassName("PageInfo", this.frameworkExtendsModelPackage + ".PageInfo");
@@ -86,7 +83,7 @@ public class JavaEaseFrameProvider extends AbstractFrameworkProvider {
 		addQualifiedClassName("CustomApiModelProperty", this.frameworkCommonPackage + ".annotation.CustomApiModelProperty");
 	}
 	
-	public void initBaseClass() {
+	public void initFrameBaseClass() {
 		this.initBaseEntityClass("BaseEntity", this.frameworkExtendsModelPackage, "PK", "Default");
 		this.initBaseEntityClass("BaseEntityInt", this.frameworkExtendsModelPackage, "Integer");
 		this.initBaseEntityClass("BaseEntityLong", this.frameworkExtendsModelPackage, "Long");
@@ -138,7 +135,7 @@ public class JavaEaseFrameProvider extends AbstractFrameworkProvider {
 		appClass.setMethods(methods);
 	}
 	
-	private void initFrameDependey() {
+	public void initFrameDependey() {
 		Dependey dependey = new Dependey("com.gm.framework", "javaeaseframe-parent", "1.0.0-SNAPSHOT");
 		Map<String, Dependey> dependencyMap = new LinkedHashMap<>();
 		dependencyMap.put("guava", new Dependey("com.google.guava", "guava"));
