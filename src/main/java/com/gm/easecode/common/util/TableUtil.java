@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.gm.easecode.common.vo.AppTable;
-import com.gm.easecode.common.vo.AppTableColumn;
-import com.gm.easecode.common.vo.AppTableContext;
+import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppModuleProperties;
+import com.gm.easecode.common.vo.AppModuleContext;
 import com.gm.easecode.common.vo.TableNameInfo;
 
 public class TableUtil
@@ -293,7 +293,7 @@ public class TableUtil
 		return str.substring(0,1).toUpperCase() + str.substring(1);
 	}
 	
-	public static String generationCreateTableSql(AppTable table, int tabSize)
+	public static String generationCreateTableSql(AppModule table, int tabSize)
 	{
 		StringBuffer sql = new StringBuffer();
 		StringBuffer tab = new StringBuffer();
@@ -312,8 +312,8 @@ public class TableUtil
 		sql.append("CREATE TABLE `" + tableName + "`(");
 		sql.append("\n");
 		String priKey = "id";
-		List<AppTableColumn> columns = table.getColumnList();
-		for(AppTableColumn column : columns)
+		List<AppModuleProperties> columns = table.getColumnList();
+		for(AppModuleProperties column : columns)
 		{
 		    if (column.isPri()) {
 		        priKey = column.getColumnName();
@@ -345,11 +345,11 @@ public class TableUtil
 	 * @param table
 	 * @return
 	 */
-	public static String generationCreateTableSql(AppTable table) {
+	public static String generationCreateTableSql(AppModule table) {
 		return generationCreateTableSql(table, 0);
 	}
 	
-	public static String getSqlContent(AppTableContext context) {
+	public static String getSqlContent(AppModuleContext context) {
 		StringBuffer sql = new StringBuffer();
 		String tableName = context.getTable().getTableName();
 		sql.append("\n");

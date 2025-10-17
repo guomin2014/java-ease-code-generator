@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.gm.easecode.common.util.StringUtils;
 
-public class AppModuleBuilder {
+public class AppModuleGroupBuilder {
 
 	/** 模块编号 */
     private static final AtomicInteger moduleNum = new AtomicInteger();
@@ -19,36 +19,36 @@ public class AppModuleBuilder {
 	/** 表集合，逗号分隔 */
 	private String tables;
 	
-	public AppModuleBuilder forName(String name) {
+	public AppModuleGroupBuilder forName(String name) {
 		this.name = name;
 		return this;
 	}
-	public AppModuleBuilder forIdentify(String identify) {
+	public AppModuleGroupBuilder forIdentify(String identify) {
 		this.identify = identify;
 		return this;
 	}
-	public AppModuleBuilder forSubModuleEnable(boolean subModuleEnable) {
+	public AppModuleGroupBuilder forSubModuleEnable(boolean subModuleEnable) {
 		this.subModuleEnable = subModuleEnable;
 		return this;
 	}
-	public AppModuleBuilder forSubModuleDepth(int subModuleDepth) {
+	public AppModuleGroupBuilder forSubModuleDepth(int subModuleDepth) {
 		this.subModuleDepth = subModuleDepth;
 		return this;
 	}
-	public AppModuleBuilder forTables(String tables) {
+	public AppModuleGroupBuilder forTables(String tables) {
 		this.tables = tables;
 		return this;
 	}
 	
-	public AppModule build() {
+	public AppModuleGroup build() {
 		if (StringUtils.isEmpty(identify)) {
-			identify = AppModule.DEFAULT_IDENTIFY;
+			identify = AppModuleGroup.DEFAULT_IDENTIFY;
 			if (StringUtils.isEmpty(name)) {
-				name = AppModule.DEFAULT_NAME;
+				name = AppModuleGroup.DEFAULT_NAME;
 			}
 		}
 		int num = moduleNum.incrementAndGet();
-		AppModule module = new AppModule(num, name, identify, tables);
+		AppModuleGroup module = new AppModuleGroup(num, name, identify, tables);
 		if (subModuleEnable != null) {
 			module.setSubModuleEnable(subModuleEnable);
 		}

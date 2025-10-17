@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.gm.easecode.common.util.StringUtils;
-import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppModuleGroup;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.frame.FrameworkProviderFactory.FrameworkProviderMode;
 import com.gm.easecode.source.DataSource;
@@ -50,7 +50,7 @@ public class AppConfigBuilder {
 	/** 可用的表，不填表示全部 */
 	private String enableTables;
 	/** 模块列表（将表按模块划分） */
-	private List<AppModule> modules = new ArrayList<>();
+	private List<AppModuleGroup> modules = new ArrayList<>();
 	
 	public AppConfigBuilder setAppName(String appName) {
 		this.appName = appName;
@@ -147,7 +147,7 @@ public class AppConfigBuilder {
 		return this;
 	}
 	
-	public AppConfigBuilder addModule(AppModule module) {
+	public AppConfigBuilder addModule(AppModuleGroup module) {
 		this.modules.add(module);
 		return this;
 	}

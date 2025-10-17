@@ -26,8 +26,8 @@ import com.gm.easecode.common.vo.AppClassMethod;
 import com.gm.easecode.common.vo.AppClassMethodBody;
 import com.gm.easecode.common.vo.AppClassMethodList;
 import com.gm.easecode.common.vo.AppClassMethodParam;
-import com.gm.easecode.common.vo.AppTable;
-import com.gm.easecode.common.vo.AppTableColumn;
+import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppModuleProperties;
 import com.gm.easecode.common.vo.FieldVO;
 import com.gm.easecode.common.vo.FileAliasMode;
 import com.gm.easecode.common.vo.InnerModuleConstants;
@@ -40,18 +40,18 @@ public class InnerDataSourceProvider extends AbstractDataSourceProvider{
 
 	private static final String MODULE_FILE_EXT = ".tpl";
 	@Override
-	public List<AppTable> findTable(DataSource dataSource, MsgCallback callback) {
+	public List<AppModule> findTable(DataSource dataSource, MsgCallback callback) {
 		if (!(dataSource instanceof InnerDataSource)) {
 			callback.notifyMsg(new MessageEntity("Mysql数据源不支持的配置[" + dataSource.getClass().getName() + "]"));
 			return null;
 		}
 		callback.notifyMsg(new MessageEntity("开始从数据源[" + dataSource.getType().name() + "]获取表信息..."));
 		InnerDataSource source = (InnerDataSource)dataSource;
-		Map<String, AppTable> map = readInnerModule(source.getModulePath(), source.getModules(), source.getTableNamePrefix(), source.getFrameworkName(), callback);
-		List<AppTable> retList = new ArrayList<AppTable>(map.values());
-		Collections.sort(retList, new Comparator<AppTable>(){
+		Map<String, AppModule> map = readInnerModule(source.getModulePath(), source.getModules(), source.getTableNamePrefix(), source.getFrameworkName(), callback);
+		List<AppModule> retList = new ArrayList<AppModule>(map.values());
+		Collections.sort(retList, new Comparator<AppModule>(){
 			@Override
-			public int compare(AppTable o1, AppTable o2)
+			public int compare(AppModule o1, AppModule o2)
 			{
 				return o1.getTableName().compareTo(o2.getTableName());
 			}});
@@ -65,8 +65,8 @@ public class InnerDataSourceProvider extends AbstractDataSourceProvider{
 	 * @param callback
 	 * @return
 	 */
-	public Map<String, AppTable> readInnerModule(String modulePath, String modules, String tableNamePrefix, String frameworkName, MsgCallback callback) {
-		Map<String, AppTable> retMap = new LinkedHashMap<String, AppTable>();
+	public Map<String, AppModule> readInnerModule(String modulePath, String modules, String tableNamePrefix, String frameworkName, MsgCallback callback) {
+		Map<String, AppModule> retMap = new LinkedHashMap<String, AppModule>();
 		if (StringUtils.isEmpty(modules)) {
 			callback.notifyMsg(new MessageEntity("未指定模块，将获取全部内置模块"));
 			String path = StringUtils.addSeparator(ClassLoader.getSystemResource("").getPath()) + StringUtils.removeFirstSeparator(modulePath);
@@ -103,7 +103,7 @@ public class InnerDataSourceProvider extends AbstractDataSourceProvider{
 				if (StringUtils.isEmpty(content)) {
 					continue;
 				}
-				AppTable table = parseInnerModule(module, tableNamePrefix, frameworkName, content);
+				AppModule table = parseInnerModule(module, tableNamePrefix, frameworkName, content);
 				if (table != null) {
 					retMap.put(table.getTableName(), table);
 				}
@@ -115,7 +115,7 @@ public class InnerDataSourceProvider extends AbstractDataSourceProvider{
 		return retMap;
 	}
 	
-	private AppTable parseInnerModule(String module, String tableNamePrefix, String frameworkName, String content) {
+	private AppModule parseInnerModule(String module, String tableNamePrefix, String frameworkName, String content) {
 		if (StringUtils.isEmpty(content)) {
 			return null;
 		}
@@ -123,7 +123,7 @@ public class InnerDataSourceProvider extends AbstractDataSourceProvider{
 		String tableDesc = null;
 		boolean treeTable = false;
 		String info = parseNode(content, FileAliasMode.Entity.name(), InnerModuleConstants.INFO_KEY, frameworkName);
-		List<AppTableColumn> columnList = new ArrayList<>();
+		List<AppModuleProperties> columnList = new ArrayList<>();
 		if (StringUtils.isNotEmpty(info)) {
 			JSONObject infoJson = JSON.parseObject(info);
 			tableName = infoJson.getString("name");
@@ -142,7 +142,7 @@ public class InnerDataSourceProvider extends AbstractDataSourceProvider{
 					String fieldForEdit = fieldJson.getString("editEnable");
 					String fieldForQuery = fieldJson.getString("queryEnable");
 					FieldVO fieldInfo = new FieldVO(fieldName, fieldDesc, fieldType, fieldComment, null, fieldForList, fieldForEdit, fieldForQuery, null, fieldRequired);
-					AppTableColumn column = convertTableColumn(fieldInfo);
+					AppModuleProperties column = convertTableColumn(fieldInfo);
 					columnList.add(column);
 				}
 			}
@@ -153,7 +153,7 @@ public class InnerDataSourceProvider extends AbstractDataSourceProvider{
 		if (StringUtils.isNotEmpty(tableNamePrefix) && !tableName.startsWith(tableNamePrefix)) {
 			tableName = tableNamePrefix + tableName;
 		}
-		AppTable table = convertTable(tableName, tableDesc, treeTable, true, columnList);
+		AppModule table = convertTable(tableName, tableDesc, treeTable, true, columnList);
 		FileAliasMode[] aliases = FileAliasMode.values();
 		for (FileAliasMode alias : aliases) {
 			if (alias == FileAliasMode.EntityKey || alias == FileAliasMode.EntityXml) {
@@ -183,7 +183,7 @@ public class InnerDataSourceProvider extends AbstractDataSourceProvider{
 		}
 		return ret;
 	}
-	private void parseNodeImport(String content, String aliasName, String nodeName, String frameworkName, AppTable table) {
+	private void parseNodeImport(String content, String aliasName, String nodeName, String frameworkName, AppModule table) {
 		String imports = parseNode(content, aliasName, nodeName, frameworkName);
 		if (StringUtils.isNotEmpty(imports)) {
 			Set<String> importClasses = new TreeSet<>();
@@ -215,7 +215,7 @@ public class InnerDataSourceProvider extends AbstractDataSourceProvider{
 		}
 	}
 	
-	private void parseNodeField(String content, String aliasName, String nodeName, String frameworkName, AppTable table) {
+	private void parseNodeField(String content, String aliasName, String nodeName, String frameworkName, AppModule table) {
 		String fields = parseNode(content, aliasName, nodeName, frameworkName);
 		if (StringUtils.isNotEmpty(fields)) {
 			List<AppClassField> fieldList = new ArrayList<>();
@@ -247,7 +247,7 @@ public class InnerDataSourceProvider extends AbstractDataSourceProvider{
 		}
 	}
 	
-	private void parseNodeMethod(String content, String aliasName, String nodeName, String frameworkName, AppTable table) {
+	private void parseNodeMethod(String content, String aliasName, String nodeName, String frameworkName, AppModule table) {
 		String methods = parseNode(content, aliasName, nodeName, frameworkName);
 		if (StringUtils.isNotEmpty(methods)) {
 			List<AppClassMethod> methodList = new ArrayList<>();

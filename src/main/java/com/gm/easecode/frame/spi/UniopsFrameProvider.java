@@ -17,9 +17,9 @@ import com.gm.easecode.common.vo.AppClassDefinition;
 import com.gm.easecode.common.vo.AppClassMethod;
 import com.gm.easecode.common.vo.AppClassMethodList;
 import com.gm.easecode.common.vo.AppClassMethodParam;
-import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppModuleGroup;
 import com.gm.easecode.common.vo.AppNameSpace;
-import com.gm.easecode.common.vo.AppTableNameSpace;
+import com.gm.easecode.common.vo.AppModuleNameSpace;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.common.vo.FileAliasMode;
 import com.gm.easecode.frame.AbstractFrameworkProvider;
@@ -345,14 +345,14 @@ public class UniopsFrameProvider extends AbstractFrameworkProvider {
 		return annotation;
 	}
 	@Override
-	public AppTableNameSpace getAppModuleNameSpace(AppNameSpace appNameSpace, String moduleName, AppModule appModule) {
-		AppTableNameSpace appTableNameSpace = super.getAppModuleNameSpace(appNameSpace, moduleName, appModule);
+	public AppModuleNameSpace getAppModuleNameSpace(AppNameSpace appNameSpace, String moduleName, AppModuleGroup appModuleGroup) {
+		AppModuleNameSpace appModuleNameSpace = super.getAppModuleNameSpace(appNameSpace, moduleName, appModuleGroup);
 		//重新定义dto的路径
-		String controllerDtoPkgName = TableUtil.getPackage(appTableNameSpace.getPkgRoot(), appNameSpace.getConfig().getControllerDtoPathSpecs());
-		appTableNameSpace.setControllerDtoPkgName(controllerDtoPkgName);
-		String controllerDtoPath = TableUtil.getPath(appTableNameSpace.getJavaRootPath(), controllerDtoPkgName);
-		appTableNameSpace.setControllerDtoPath(controllerDtoPath);
-		return appTableNameSpace;
+		String controllerDtoPkgName = TableUtil.getPackage(appModuleNameSpace.getPkgRoot(), appNameSpace.getConfig().getControllerDtoPathSpecs());
+		appModuleNameSpace.setControllerDtoPkgName(controllerDtoPkgName);
+		String controllerDtoPath = TableUtil.getPath(appModuleNameSpace.getJavaRootPath(), controllerDtoPkgName);
+		appModuleNameSpace.setControllerDtoPath(controllerDtoPath);
+		return appModuleNameSpace;
 	}
 	
 }

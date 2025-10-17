@@ -17,8 +17,8 @@ import java.util.Set;
 
 import com.gm.easecode.common.AppException;
 import com.gm.easecode.common.util.StringUtils;
-import com.gm.easecode.common.vo.AppTable;
-import com.gm.easecode.common.vo.AppTableColumn;
+import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppModuleProperties;
 import com.gm.easecode.common.vo.FieldVO;
 import com.gm.easecode.message.MessageEntity;
 import com.gm.easecode.message.MsgCallback;
@@ -30,7 +30,7 @@ public class MysqlDataSourceProvider extends AbstractDataSourceProvider {
 	private static final String driver = "com.mysql.cj.jdbc.Driver";
 	
 	@Override
-	public List<AppTable> findTable(DataSource dataSource, MsgCallback callback) {
+	public List<AppModule> findTable(DataSource dataSource, MsgCallback callback) {
 		if (!(dataSource instanceof MysqlDataSource)) {
 			callback.notifyMsg(new MessageEntity("Mysql数据源不支持的配置[" + dataSource.getClass().getName() + "]"));
 			return null;
@@ -43,11 +43,11 @@ public class MysqlDataSourceProvider extends AbstractDataSourceProvider {
         if (StringUtils.isEmpty(source.getDbUser())) {
             throw new AppException("数据库访问用户为空");
         }
-		Map<String, AppTable> map = readDB(source.getDbUrl(), source.getDbUser(), source.getDbPwd(), callback);
-		List<AppTable> retList = new ArrayList<AppTable>(map.values());
-		Collections.sort(retList, new Comparator<AppTable>() {
+		Map<String, AppModule> map = readDB(source.getDbUrl(), source.getDbUser(), source.getDbPwd(), callback);
+		List<AppModule> retList = new ArrayList<AppModule>(map.values());
+		Collections.sort(retList, new Comparator<AppModule>() {
 			@Override
-			public int compare(AppTable o1, AppTable o2) {
+			public int compare(AppModule o1, AppModule o2) {
 				return o1.getTableName().compareTo(o2.getTableName());
 			}
 		});
@@ -82,9 +82,9 @@ public class MysqlDataSourceProvider extends AbstractDataSourceProvider {
 	 * @param callback
 	 * @return
 	 */
-	public Map<String, AppTable> readDB(String dbUrl, String dbUser, String dbPwd, MsgCallback callback)
+	public Map<String, AppModule> readDB(String dbUrl, String dbUser, String dbPwd, MsgCallback callback)
     {
-	    Map<String, AppTable> retMap = new LinkedHashMap<String, AppTable>();
+	    Map<String, AppModule> retMap = new LinkedHashMap<String, AppModule>();
 	    Connection conn = null;
 	    Statement stmt = null;
         try
@@ -136,7 +136,7 @@ public class MysqlDataSourceProvider extends AbstractDataSourceProvider {
                     {
                         callback.notifyMsg(new MessageEntity("开始解析表格：" + tableRemark + "-->" + table));
                     }
-                    List<AppTableColumn> columnList = new ArrayList<AppTableColumn>();
+                    List<AppModuleProperties> columnList = new ArrayList<AppModuleProperties>();
                  // 获取表的主键名字
                     ResultSet pkInfo = meta.getPrimaryKeys(null, "%", table);
                     Set<String> primaryKeys = new HashSet<>();
@@ -188,11 +188,11 @@ public class MysqlDataSourceProvider extends AbstractDataSourceProvider {
                         	}
                         }
                         FieldVO fieldInfo = new FieldVO(columnName, columnDesc, dbColumnType, columnComment, columnDefault, isAutoIncr, columnRequired);
-                        AppTableColumn column = convertTableColumn(fieldInfo);
+                        AppModuleProperties column = convertTableColumn(fieldInfo);
                         columnList.add(column);
                     }
                     colRet.close();
-                    AppTable realTable = convertTable(table, tableRemark, false, false, columnList);
+                    AppModule realTable = convertTable(table, tableRemark, false, false, columnList);
                     retMap.put(table, realTable);
                 }
             } catch (Exception e) {

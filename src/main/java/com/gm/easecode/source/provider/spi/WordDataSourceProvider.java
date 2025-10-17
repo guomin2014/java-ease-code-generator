@@ -19,8 +19,8 @@ import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 
 import com.gm.easecode.common.util.StringUtils;
-import com.gm.easecode.common.vo.AppTable;
-import com.gm.easecode.common.vo.AppTableColumn;
+import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppModuleProperties;
 import com.gm.easecode.common.vo.FieldVO;
 import com.gm.easecode.message.MessageEntity;
 import com.gm.easecode.message.MsgCallback;
@@ -30,7 +30,7 @@ import com.gm.easecode.source.provider.AbstractDataSourceProvider;
 public class WordDataSourceProvider extends AbstractDataSourceProvider {
 
 	@Override
-	public List<AppTable> findTable(DataSource dataSource, MsgCallback callback) {
+	public List<AppModule> findTable(DataSource dataSource, MsgCallback callback) {
 		if (!(dataSource instanceof WordDataSource)) {
 			callback.notifyMsg(new MessageEntity("Word数据源不支持的配置[" + dataSource.getClass().getName() + "]"));
 			return null;
@@ -41,11 +41,11 @@ public class WordDataSourceProvider extends AbstractDataSourceProvider {
 			callback.notifyMsg(new MessageEntity("Word数据源未配置文件路径"));
 			return null;
 		}
-		Map<String, AppTable> retMap = this.readWord(source.getFilePath(), callback);
-		List<AppTable> retList = new ArrayList<AppTable>(retMap.values());
-		Collections.sort(retList, new Comparator<AppTable>(){
+		Map<String, AppModule> retMap = this.readWord(source.getFilePath(), callback);
+		List<AppModule> retList = new ArrayList<AppModule>(retMap.values());
+		Collections.sort(retList, new Comparator<AppModule>(){
 			@Override
-			public int compare(AppTable o1, AppTable o2)
+			public int compare(AppModule o1, AppModule o2)
 			{
 				return o1.getTableName().compareTo(o2.getTableName());
 			}
@@ -59,8 +59,8 @@ public class WordDataSourceProvider extends AbstractDataSourceProvider {
 	 * @param callback
 	 * @return
 	 */
-	public Map<String, AppTable> readWord(String filePath, MsgCallback callback) {
-		Map<String, AppTable> retMap = new LinkedHashMap<String, AppTable>();
+	public Map<String, AppModule> readWord(String filePath, MsgCallback callback) {
+		Map<String, AppModule> retMap = new LinkedHashMap<String, AppModule>();
 		String titleFieldName = "字段";
 		String titleFieldDesc = "字段名称";
 		String titleFieldFill = "必填";
@@ -150,7 +150,7 @@ public class WordDataSourceProvider extends AbstractDataSourceProvider {
 					continue;
 				}
 				boolean needCreate = true;
-				List<AppTableColumn> columnList = new ArrayList<>();
+				List<AppModuleProperties> columnList = new ArrayList<>();
 				for (int i = 2; i < rows.size(); i++) {
 					XWPFTableRow row = rows.get(i);
 					// 获取行对应的单元格
@@ -177,7 +177,7 @@ public class WordDataSourceProvider extends AbstractDataSourceProvider {
 					fieldComment = fieldComment.replace("\n", " ");
 					try {
 						FieldVO fieldInfo = new FieldVO(fieldName, fieldDesc, fieldType, fieldComment, null, fieldForList, fieldForEdit, fieldForQuery, null, fieldRequired);
-						AppTableColumn column = convertTableColumn(fieldInfo);
+						AppModuleProperties column = convertTableColumn(fieldInfo);
 						columnList.add(column);
 					} catch (Exception e) {
 						if (callback != null) {
@@ -188,7 +188,7 @@ public class WordDataSourceProvider extends AbstractDataSourceProvider {
 					}
 				}
 				if (!StringUtils.isEmpty(tableName) && needCreate) {
-					AppTable realTable = convertTable(tableName, tableDesc, false, false, columnList);
+					AppModule realTable = convertTable(tableName, tableDesc, false, false, columnList);
 					retMap.put(realTable.getTableName(), realTable);
 				}
 			}

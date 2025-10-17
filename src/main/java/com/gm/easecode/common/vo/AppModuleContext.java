@@ -16,7 +16,7 @@ import com.gm.easecode.config.AppConfig;
 import com.gm.easecode.frame.FrameworkProvider;
 import com.gm.easecode.frame.common.FrameDependey;
 
-public class AppTableContext extends AppClassHandler{
+public class AppModuleContext extends AppClassHandler{
 	/** 类文件 */
 	private Map<String, AppClass> classMap;
 	/** 前端页面文件 */
@@ -28,11 +28,11 @@ public class AppTableContext extends AppClassHandler{
 	
 	private AppNameSpace appNameSpace;
 	
-	public AppTable table;
+	public AppModule table;
 	
-	public AppModule appModule;
+	public AppModuleGroup appModuleGroup;
 	
-	public AppTableNameSpace nameParam;
+	public AppModuleNameSpace nameParam;
 	
 	private final String incrementSuff = "Increment";
 	private final String startSuff = "Start";
@@ -45,13 +45,13 @@ public class AppTableContext extends AppClassHandler{
 	
 	private Map<String, String> aliasVariableMap;
 	
-	public AppTableContext(FrameworkProvider frameworkProvider, AppNameSpace appNameSpace, AppTable table, AppModule appModule) {
+	public AppModuleContext(FrameworkProvider frameworkProvider, AppNameSpace appNameSpace, AppModule table, AppModuleGroup appModuleGroup) {
 		this.frameworkProvider = frameworkProvider;
 		this.appNameSpace = appNameSpace;
 		this.config = appNameSpace.getConfig();
 		this.table = table;
-		this.appModule = appModule;
-		this.nameParam = frameworkProvider.getAppModuleNameSpace(appNameSpace, table.getTableName(), appModule);
+		this.appModuleGroup = appModuleGroup;
+		this.nameParam = frameworkProvider.getAppModuleNameSpace(appNameSpace, table.getTableName(), appModuleGroup);
 		this.classMap = new HashMap<>();
 		this.aliasVariableMap = new HashMap<>();
 		this.init();
@@ -71,7 +71,7 @@ public class AppTableContext extends AppClassHandler{
 				pkType = "Long";
 			}
 		}
-		List<AppTableColumn> columnList = table.getColumnList();
+		List<AppModuleProperties> columnList = table.getColumnList();
 		//初始化Entity对象
 		AppClass entityClass = this.createAppClass(FileAliasMode.Entity.name(), this.nameParam.getEntityName(), this.nameParam.getEntityPkgName(), this.nameParam.getEntityPath(), this.table.getComment(), pkType);
 		entityClass.addField(new AppClassFieldSerial());
@@ -218,7 +218,7 @@ public class AppTableContext extends AppClassHandler{
 		}
 	}
 	
-	private void createAppClassFields(AppClass appClass, List<AppTableColumn> columnList) {
+	private void createAppClassFields(AppClass appClass, List<AppModuleProperties> columnList) {
 		if (columnList == null || columnList.isEmpty()) {
 			return;
 		}
@@ -230,7 +230,7 @@ public class AppTableContext extends AppClassHandler{
 		AppClassDefinition classDefinition = new AppClassDefinition(aliasName);
 		AppAnnotation annotation = this.frameworkProvider.getClassFieldAnnotation(classDefinition);
 		FileAliasMode alias = FileAliasMode.getByName(aliasName);
-		for (AppTableColumn column : columnList) {
+		for (AppModuleProperties column : columnList) {
 			String javaType = column.getJavaType();
 			String javaPropertyName = column.getJavaPropertyName();
 			String javaDefaultValue = column.getColumnDefault();
@@ -670,27 +670,27 @@ public class AppTableContext extends AppClassHandler{
 		this.config = config;
 	}
 
-	public AppTable getTable() {
+	public AppModule getTable() {
 		return table;
 	}
 
-	public void setTable(AppTable table) {
+	public void setTable(AppModule table) {
 		this.table = table;
 	}
 
-	public AppModule getAppModule() {
-		return appModule;
+	public AppModuleGroup getAppModule() {
+		return appModuleGroup;
 	}
 
-	public void setAppModule(AppModule appModule) {
-		this.appModule = appModule;
+	public void setAppModule(AppModuleGroup appModuleGroup) {
+		this.appModuleGroup = appModuleGroup;
 	}
 
-	public AppTableNameSpace getNameParam() {
+	public AppModuleNameSpace getNameParam() {
 		return nameParam;
 	}
 
-	public void setNameParam(AppTableNameSpace nameParam) {
+	public void setNameParam(AppModuleNameSpace nameParam) {
 		this.nameParam = nameParam;
 	}
 	

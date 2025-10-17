@@ -1,14 +1,14 @@
 package com.gm.easecode.common.util;
 
-import com.gm.easecode.common.vo.AppTableContext;
-import com.gm.easecode.common.vo.AppTable;
-import com.gm.easecode.common.vo.AppTableColumn;
-import com.gm.easecode.common.vo.AppTableNameSpace;
+import com.gm.easecode.common.vo.AppModuleContext;
+import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppModuleProperties;
+import com.gm.easecode.common.vo.AppModuleNameSpace;
 
 
 public class IbatisXmlUtil {
 	
-	public static String getIbatisXmlContent(AppTableContext context) throws Exception{
+	public static String getIbatisXmlContent(AppModuleContext context) throws Exception{
 		String content = FileUtil.read(context.getConfig().getIbatisXmlTpl(), context.getConfig().getCharset());
 		String daoImplQualifiedName = context.getNameParam().getDaoImplPkgName() + "." + context.getNameParam().getDaoImplName();
 		content = content.replace("${daoImplQualifiedName}", daoImplQualifiedName);
@@ -37,7 +37,7 @@ public class IbatisXmlUtil {
 		}
 		boolean hasAuthentication = false;
 		for(int i = 0; i < context.getTable().getColumnList().size(); ++i){
-			AppTableColumn column = context.getTable().getColumnList().get(i);
+			AppModuleProperties column = context.getTable().getColumnList().get(i);
 			if(column.getJavaPropertyName().equalsIgnoreCase("customerId")){
 				hasAuthentication = true;
 			}
@@ -267,14 +267,14 @@ public class IbatisXmlUtil {
 	 * @param nameParam
 	 * @return
 	 */
-	private static String getInsertBody(AppTable table, AppTableNameSpace nameParam){
+	private static String getInsertBody(AppModule table, AppModuleNameSpace nameParam){
 		CustomStringBuilder sb = new CustomStringBuilder();
 		CustomStringBuilder valSb = new CustomStringBuilder("");
 		sb.newLine().appendTab(2);
 		sb.append("(");
 		int iCol = 0;
 		int lineColNum = 5;
-		AppTableColumn column = null;
+		AppModuleProperties column = null;
 		
 		for(int i = 0; i < table.getColumnList().size(); ++i){
 			column = table.getColumnList().get(i);
@@ -298,13 +298,13 @@ public class IbatisXmlUtil {
 		sb.append(valSb.toString()).append(")");		
 		return sb.toString();
 	}
-	private static String getInsertBodyField(AppTable table, AppTableNameSpace nameParam){
+	private static String getInsertBodyField(AppModule table, AppModuleNameSpace nameParam){
 		CustomStringBuilder sb = new CustomStringBuilder();
 		sb.newLine().appendTab(2);
 		sb.append("(");
 		int iCol = 0;
 		int lineColNum = 5;
-		AppTableColumn column = null;
+		AppModuleProperties column = null;
 		
 		for(int i = 0; i < table.getColumnList().size(); ++i){
 			column = table.getColumnList().get(i);
@@ -324,11 +324,11 @@ public class IbatisXmlUtil {
 		sb.append(")");		
 		return sb.toString();
 	}
-	private static String getInsertBodyFieldValue(AppTable table, AppTableNameSpace nameParam){
+	private static String getInsertBodyFieldValue(AppModule table, AppModuleNameSpace nameParam){
 		CustomStringBuilder valSb = new CustomStringBuilder("");
 		int iCol = 0;
 		int lineColNum = 5;
-		AppTableColumn column = null;
+		AppModuleProperties column = null;
 		
 		for(int i = 0; i < table.getColumnList().size(); ++i){
 			column = table.getColumnList().get(i);

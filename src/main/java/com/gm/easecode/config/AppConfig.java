@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.gm.easecode.common.util.DateUtils;
 import com.gm.easecode.common.util.StringUtils;
-import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppModuleGroup;
 import com.gm.easecode.common.vo.CodeStyleMode;
 import com.gm.easecode.common.vo.ConfigStyleMode;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
@@ -121,7 +121,7 @@ public class AppConfig {
 	/** 表名前缀 */
 	private String tableNamePrefix;
 	/** 模块列表（将表按模块划分） */
-	private List<AppModule> modules = new ArrayList<>();
+	private List<AppModuleGroup> modules = new ArrayList<>();
 	
 	public AppConfig(String appName, String companyPackage, String frameworkName, String frameworkVersion, DataSource dataSource, String codeSavePath) {
 		this(appName, companyPackage, frameworkName, frameworkVersion, ControllerClassStyleMode.JSON_MAPPING, dataSource, codeSavePath);
@@ -533,10 +533,10 @@ public class AppConfig {
 	public void setInnerModules(String innerModules) {
 		this.innerModules = innerModules;
 	}
-	public List<AppModule> getModules() {
+	public List<AppModuleGroup> getModules() {
 		return modules;
 	}
-	public void setModules(List<AppModule> modules) {
+	public void setModules(List<AppModuleGroup> modules) {
 		this.modules = modules;
 	}
 	public void setSqlFilePath(String sqlFilePath) {

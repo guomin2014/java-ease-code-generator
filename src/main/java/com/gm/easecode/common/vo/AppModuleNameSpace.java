@@ -10,7 +10,7 @@ import com.gm.easecode.config.AppConfig;
  * 应用采用的配置文件
  *
  */
-public class AppTableNameSpace {
+public class AppModuleNameSpace {
 	/** 模块名称 */
 	private String moduleName;
 	/** 实体对象文件名称*/
@@ -100,7 +100,7 @@ public class AppTableNameSpace {
 	 * @param tableName    表名
 	 * @param module       表归属模块
 	 */
-	public AppTableNameSpace(AppNameSpace appNameSpace, String tableName, AppModule module) {
+	public AppModuleNameSpace(AppNameSpace appNameSpace, String tableName, AppModuleGroup module) {
 		AppConfig config = appNameSpace.getConfig();
 		CodeStyleMode codeStyle = config.getCodeStyle();//编码风格，0：普通，1：Maven
         this.categoryNum = module.getNum();
@@ -132,7 +132,7 @@ public class AppTableNameSpace {
 		String identify = module.getIdentify();
 		String category = identify;
 		String subPackage = null;//class类的包路径
-		if (AppModule.DEFAULT_IDENTIFY.equalsIgnoreCase(identify)) {//未分组
+		if (AppModuleGroup.DEFAULT_IDENTIFY.equalsIgnoreCase(identify)) {//未分组
 			category = modulePackages != null && modulePackages.length > 0 ? modulePackages[0] : identify;
 			subPackage = modulePackageJoin;
 		} else {

@@ -21,7 +21,7 @@ import com.gm.easecode.common.vo.AppClassMethodGetAndSet;
 import com.gm.easecode.common.vo.AppClassMethodList;
 import com.gm.easecode.common.vo.AppClassMethodParam;
 import com.gm.easecode.common.vo.AppContext;
-import com.gm.easecode.common.vo.AppTableContext;
+import com.gm.easecode.common.vo.AppModuleContext;
 import com.gm.easecode.common.vo.ClassType;
 import com.gm.easecode.config.AppConfig;
 
@@ -34,7 +34,7 @@ public final class ClassFileUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public final static String crtClassContent(AppTableContext context, AppClass appClass) throws Exception {
+	public final static String crtClassContent(AppModuleContext context, AppClass appClass) throws Exception {
 		return crtClassContent(context.getConfig(), appClass);
 	}
 	public final static String crtClassContent(AppConfig config, AppClass appClass) throws Exception {

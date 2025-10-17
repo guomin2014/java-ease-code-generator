@@ -9,9 +9,9 @@ import com.gm.easecode.common.vo.AppClass;
 import com.gm.easecode.common.vo.AppClassField;
 import com.gm.easecode.common.vo.AppClassFieldList;
 import com.gm.easecode.common.vo.AppContext;
-import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppModuleGroup;
 import com.gm.easecode.common.vo.AppNameSpace;
-import com.gm.easecode.common.vo.AppTableNameSpace;
+import com.gm.easecode.common.vo.AppModuleNameSpace;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.common.vo.FileAliasMode;
 import com.gm.easecode.config.AppConfig;
@@ -70,8 +70,8 @@ public abstract class AbstractFrameworkProvider implements FrameworkProvider {
 	}
 
 	@Override
-	public AppTableNameSpace getAppModuleNameSpace(AppNameSpace appNameSpace, String moduleName, AppModule appModule) {
-		return new AppTableNameSpace(appNameSpace, moduleName, appModule);
+	public AppModuleNameSpace getAppModuleNameSpace(AppNameSpace appNameSpace, String moduleName, AppModuleGroup appModuleGroup) {
+		return new AppModuleNameSpace(appNameSpace, moduleName, appModuleGroup);
 	}
 
 	/**

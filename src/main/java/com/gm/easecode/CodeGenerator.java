@@ -1,6 +1,6 @@
 package com.gm.easecode;
 
-import com.gm.easecode.common.vo.AppModuleBuilder;
+import com.gm.easecode.common.vo.AppModuleGroupBuilder;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.config.AppConfigBuilder;
 import com.gm.easecode.frame.FrameworkProviderFactory;
@@ -27,8 +27,8 @@ public class CodeGenerator {
 				.createSqlFile(true)// 是否创建sql文件
 				.createBootstrapFile(true)//是否创建启动文件
 				.cleanOldCode(false)//是否清除历史生成代码
-			    .addModule(new AppModuleBuilder().forName("集群管理").forIdentify("cluster").forSubModuleEnable(true).forTables("javaeaseframe_demo_cluster,javaeaseframe_demo_cluster_node").build())
-			    .addModule(new AppModuleBuilder().forName("任务管理").forIdentify("task").forSubModuleEnable(true).forTables("javaeaseframe_demo_task").build())
+			    .addModule(new AppModuleGroupBuilder().forName("集群管理").forIdentify("cluster").forSubModuleEnable(true).forTables("javaeaseframe_demo_cluster,javaeaseframe_demo_cluster_node").build())
+			    .addModule(new AppModuleGroupBuilder().forName("任务管理").forIdentify("task").forSubModuleEnable(true).forTables("javaeaseframe_demo_task").build())
 			    .setDataSource(new MysqlDataSource(dbUrl, dbUser, dbPwd))// 数据来源
 			    .setCodeSavePath("/Users/shenzhuyu/Desktop/demo");// 生成代码存储路径
 		AppCodeService.createCode(builder.build());

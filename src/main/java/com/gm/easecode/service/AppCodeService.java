@@ -18,11 +18,11 @@ import com.gm.easecode.common.vo.AppClass;
 import com.gm.easecode.common.vo.AppClassBuilder;
 import com.gm.easecode.common.vo.AppClassHandler;
 import com.gm.easecode.common.vo.AppClassMethodMain;
-import com.gm.easecode.common.vo.AppModule;
-import com.gm.easecode.common.vo.AppModuleBuilder;
+import com.gm.easecode.common.vo.AppModuleGroup;
+import com.gm.easecode.common.vo.AppModuleGroupBuilder;
 import com.gm.easecode.common.vo.AppNameSpace;
-import com.gm.easecode.common.vo.AppTable;
-import com.gm.easecode.common.vo.AppTableContext;
+import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppModuleContext;
 import com.gm.easecode.common.vo.ClassType;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.common.vo.FileAliasMode;
@@ -59,7 +59,7 @@ public class AppCodeService {
 			callback.notifyMsg(new MessageEntity("没有符合条件的DataSourceProvider[" + dataSource + "]"));
 			return;
 		}
-		List<AppTable> tableList = dataSourceProvider.findTable(dataSource, callback);
+		List<AppModule> tableList = dataSourceProvider.findTable(dataSource, callback);
 		if (tableList == null || tableList.isEmpty()) {
 			callback.notifyMsg(new MessageEntity("没有符合格式的表"));
 			return;
@@ -70,15 +70,15 @@ public class AppCodeService {
 			callback.notifyMsg(new MessageEntity("开始初始化系统模块..."));
 			InnerDataSource innerDataSource = new InnerDataSource(config.getBuiltInModulePath(), config.getInnerModules(), config.getTableNamePrefix(), config.getFrameworkName());
 			DataSourceProvider innerDataSourceProvider = DataSourceProviderFactory.createDataSourceProvider(innerDataSource);
-			List<AppTable> innerTableList = innerDataSourceProvider.findTable(innerDataSource, callback);
+			List<AppModule> innerTableList = innerDataSourceProvider.findTable(innerDataSource, callback);
 			StringBuilder tableBuild = new StringBuilder();
 			if (innerTableList != null && !innerTableList.isEmpty()) {
 				tableList.addAll(innerTableList);
-				for (AppTable table : innerTableList) {
+				for (AppModule table : innerTableList) {
 					tableBuild.append(table.getTableName()).append(",");
 				}
 			}
-			AppModule innerModule = new AppModuleBuilder().forName("系统管理").forIdentify("system").forSubModuleEnable(true).forTables(tableBuild.toString()).build();
+			AppModuleGroup innerModule = new AppModuleGroupBuilder().forName("系统管理").forIdentify("system").forSubModuleEnable(true).forTables(tableBuild.toString()).build();
 			config.getModules().add(innerModule);
 		}
 		FrameworkProvider frameworkProvider = FrameworkProviderFactory.createFrameworkProvider(config.getFrameworkName(), config.getFrameworkVersion());
@@ -87,11 +87,11 @@ public class AppCodeService {
 			return;
 		}
 		AppNameSpace appNameSpace = frameworkProvider.getAppNameSpace(config);
-		AppModule defaultModule = new AppModuleBuilder().build();
-		List<AppModule> modules = config.getModules();
-		Map<String, AppModule> tableModuleMap = new HashMap<>();
+		AppModuleGroup defaultModule = new AppModuleGroupBuilder().build();
+		List<AppModuleGroup> modules = config.getModules();
+		Map<String, AppModuleGroup> tableModuleMap = new HashMap<>();
 		if (modules != null && modules.size() > 0) {
-			for (AppModule module : modules) {
+			for (AppModuleGroup module : modules) {
 				Set<String> tables = StringUtils.converStr2Set(module.getTables());
 				for (String table : tables) {
 					tableModuleMap.put(table, module);
@@ -100,11 +100,11 @@ public class AppCodeService {
 		} else {
 			callback.notifyMsg(new MessageEntity("无模板规则，使用默认规则！", false, false));
 		}
-		List<AppTableContext> appContextList = new ArrayList<AppTableContext>();
+		List<AppModuleContext> appContextList = new ArrayList<AppModuleContext>();
 		Set<String> createTables = new HashSet<String>();
 		Set<String> enableTables = StringUtils.converStr2Set(config.getEnableTables());
 		Set<String> filterTables = StringUtils.converStr2Set(config.getFilterTables());
-		for (AppTable table : tableList) {
+		for (AppModule table : tableList) {
 			String tableName = table.getTableName();
 			String tableComment = table.getComment();
 			if (tableComment != null && tableComment.trim().length() > 0) {
@@ -120,11 +120,11 @@ public class AppCodeService {
 				continue;
 			}
 			createTables.add(realTableName);
-			AppModule appModule = tableModuleMap.get(realTableName);
-			if (appModule == null) {// 无匹配规则，使用默认规则
-				appModule = defaultModule;
+			AppModuleGroup appModuleGroup = tableModuleMap.get(realTableName);
+			if (appModuleGroup == null) {// 无匹配规则，使用默认规则
+				appModuleGroup = defaultModule;
 			}
-			AppTableContext appContext = new AppTableContext(frameworkProvider, appNameSpace, table, appModule);
+			AppModuleContext appContext = new AppModuleContext(frameworkProvider, appNameSpace, table, appModuleGroup);
 			appContextList.add(appContext);
 		}
 		callback.notifyMsg(new MessageEntity("共" + appContextList.size() + "张表需要生成代码"));
@@ -145,7 +145,7 @@ public class AppCodeService {
 	 * @return
 	 * @throws Exception
 	 */
-	public static void createCode(AppConfig config, AppNameSpace appNameSpace, List<AppTableContext> contexts, FrameworkProvider frameworkProvider, MsgCallback callback) throws Exception {
+	public static void createCode(AppConfig config, AppNameSpace appNameSpace, List<AppModuleContext> contexts, FrameworkProvider frameworkProvider, MsgCallback callback) throws Exception {
 		if (contexts == null || contexts.isEmpty()) {
 			throw new AppException("没有需要创建的表");
 		}
@@ -157,7 +157,7 @@ public class AppCodeService {
 			}
 			callback.notifyMsg(new MessageEntity("预存储文件路径--->" + config.getCodeSavePath()));
 			callback.notifyMsg(new MessageEntity("开始构建模块代码"));
-			for (AppTableContext context : contexts) {
+			for (AppModuleContext context : contexts) {
 				callback.notifyMsg(new MessageEntity("构建模块[" + context.table.getTableName() + "]"));
 				if (config.isCreateEntityFile()) {
 					crtIbatisXmlFile(context, FileAliasMode.EntityXml.name(), callback);
@@ -201,7 +201,7 @@ public class AppCodeService {
 		}
 	}
 	
-	private static void crtClassFile(AppTableContext context, String classKey, MsgCallback callback) throws Exception {
+	private static void crtClassFile(AppModuleContext context, String classKey, MsgCallback callback) throws Exception {
 		AppClass appClass = context.getClassMap().get(classKey);
 		if (appClass != null) {
 			String content = ClassFileUtil.crtClassContent(context, appClass);
@@ -212,7 +212,7 @@ public class AppCodeService {
 		}
 	}
 	
-	private static void crtIbatisXmlFile(AppTableContext context, String classKey, MsgCallback callback) throws Exception{
+	private static void crtIbatisXmlFile(AppModuleContext context, String classKey, MsgCallback callback) throws Exception{
 		String content = IbatisXmlUtil.getIbatisXmlContent(context);
 		String filePath = context.getNameParam().getIbatisConfPath() + context.getNameParam().getIbatisName();
 		callback.notifyMsg(new MessageEntity(filePath));
@@ -220,7 +220,7 @@ public class AppCodeService {
 		FileUtil.write(filePath, content, false, true, context.getConfig().getCharset());
 	}
 	
-	private static void crtSqlFile(AppTableContext context, String classKey, MsgCallback callback) throws Exception{
+	private static void crtSqlFile(AppModuleContext context, String classKey, MsgCallback callback) throws Exception{
 		String content = TableUtil.getSqlContent(context);
 		String filePath = context.getNameParam().getSqlFilePath() + context.getNameParam().getSqlFileName();
 		callback.notifyMsg(new MessageEntity(filePath));

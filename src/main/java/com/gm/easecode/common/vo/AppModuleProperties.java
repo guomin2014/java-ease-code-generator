@@ -2,7 +2,7 @@ package com.gm.easecode.common.vo;
 
 import com.gm.easecode.common.util.StringUtils;
 
-public class AppTableColumn {
+public class AppModuleProperties {
 	/** 列名 */
 	private String columnName;
 	/** 列描述 */
@@ -52,7 +52,7 @@ public class AppTableColumn {
 	/** 大小匹配 */
 	private boolean compareSize;
 	
-	public AppTableColumn(){
+	public AppModuleProperties(){
 		
 	}
 

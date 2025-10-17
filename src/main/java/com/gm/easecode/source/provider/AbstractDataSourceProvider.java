@@ -8,8 +8,8 @@ import java.util.regex.Pattern;
 import com.gm.easecode.common.AppException;
 import com.gm.easecode.common.util.StringUtils;
 import com.gm.easecode.common.util.TableUtil;
-import com.gm.easecode.common.vo.AppTable;
-import com.gm.easecode.common.vo.AppTableColumn;
+import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppModuleProperties;
 import com.gm.easecode.common.vo.FieldVO;
 
 public abstract class AbstractDataSourceProvider implements DataSourceProvider {
@@ -31,7 +31,7 @@ public abstract class AbstractDataSourceProvider implements DataSourceProvider {
 	 * @param fieldInfo
 	 * @return
 	 */
-	public AppTableColumn convertTableColumn(FieldVO fieldInfo) {
+	public AppModuleProperties convertTableColumn(FieldVO fieldInfo) {
 		String fieldName = fieldInfo.getName();//字段名
 		String fieldDesc = fieldInfo.getDesc();//字段名称
 		String fieldType = fieldInfo.getType();//字段类型
@@ -42,7 +42,7 @@ public abstract class AbstractDataSourceProvider implements DataSourceProvider {
 		String fieldForQuery = fieldInfo.getIsQueryField();
 		String fieldIsAutoIncr = fieldInfo.getIsAutoIncr();
 		String fieldDefaultValue = fieldInfo.getDefaultValue();
-		AppTableColumn column = new AppTableColumn();
+		AppModuleProperties column = new AppModuleProperties();
 		column.setColumnName(fieldName);
 		column.setColumnDefault(StringUtils.isNotEmpty(fieldDefaultValue) ? fieldDefaultValue : getColumnDefault(fieldComment));
 		column.setColumnDesc(fieldDesc);
@@ -137,18 +137,18 @@ public abstract class AbstractDataSourceProvider implements DataSourceProvider {
 	 * @param columnList	表的字段列表
 	 * @return
 	 */
-	public AppTable convertTable(String tableName, String tableDesc, boolean treeTable, boolean innerTable, List<AppTableColumn> columnList) {
+	public AppModule convertTable(String tableName, String tableDesc, boolean treeTable, boolean innerTable, List<AppModuleProperties> columnList) {
 		String realTableName = getTableRealName(tableName);
-		AppTable table = new AppTable();
+		AppModule table = new AppModule();
 		table.setOldTableName(tableName);
 		table.setTableName(realTableName);
 		table.setIsSubmeterTable(!realTableName.equals(tableName));
 		table.setTreeTable(treeTable);
 		table.setInnerTable(innerTable);
 		table.setComment(tableDesc);
-		List<AppTableColumn> priColList = new ArrayList<AppTableColumn>();
+		List<AppModuleProperties> priColList = new ArrayList<AppModuleProperties>();
 		//设置自增长列表配置、页面显示字段配置
-		for (AppTableColumn column : columnList) {
+		for (AppModuleProperties column : columnList) {
 			if (column.isPri()) {
 				priColList.add(column);
 			}

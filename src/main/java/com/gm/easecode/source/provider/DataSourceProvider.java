@@ -2,7 +2,7 @@ package com.gm.easecode.source.provider;
 
 import java.util.List;
 
-import com.gm.easecode.common.vo.AppTable;
+import com.gm.easecode.common.vo.AppModule;
 import com.gm.easecode.message.MsgCallback;
 import com.gm.easecode.source.DataSource;
 
@@ -14,5 +14,5 @@ public interface DataSourceProvider {
 	 * @param callback
 	 * @return
 	 */
-	List<AppTable> findTable(DataSource dataSource, MsgCallback callback);
+	List<AppModule> findTable(DataSource dataSource, MsgCallback callback);
 }
