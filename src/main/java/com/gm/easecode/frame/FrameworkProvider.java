@@ -6,6 +6,10 @@ import com.gm.easecode.common.vo.AppAnnotation;
 import com.gm.easecode.common.vo.AppClass;
 import com.gm.easecode.common.vo.AppClassConstructor;
 import com.gm.easecode.common.vo.AppClassDefinition;
+import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppNameSpace;
+import com.gm.easecode.common.vo.AppTableNameSpace;
+import com.gm.easecode.config.AppConfig;
 import com.gm.easecode.frame.common.FrameDependey;
 
 public interface FrameworkProvider {
@@ -18,6 +22,19 @@ public interface FrameworkProvider {
 	 * @return
 	 */
 	String getFrameworkPackage();
+	/**
+	 * 获取应用命名空间规则
+	 * @return
+	 */
+	AppNameSpace getAppNameSpace(AppConfig config);
+	/**
+	 * 获取应用模块的命名空间规则
+	 * @param appNameSpace	应用命名规则
+	 * @param moduleName	业务模块名
+	 * @param appModule		业务模块归属模块(分组)
+	 * @return
+	 */
+	AppTableNameSpace getAppModuleNameSpace(AppNameSpace appNameSpace, String moduleName, AppModule appModule);
 	/**
 	 * 获取框架依赖信息
 	 * @return

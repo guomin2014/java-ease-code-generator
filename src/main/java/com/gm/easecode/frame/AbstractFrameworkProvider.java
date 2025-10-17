@@ -9,8 +9,12 @@ import com.gm.easecode.common.vo.AppClass;
 import com.gm.easecode.common.vo.AppClassField;
 import com.gm.easecode.common.vo.AppClassFieldList;
 import com.gm.easecode.common.vo.AppContext;
+import com.gm.easecode.common.vo.AppModule;
+import com.gm.easecode.common.vo.AppNameSpace;
+import com.gm.easecode.common.vo.AppTableNameSpace;
 import com.gm.easecode.common.vo.ControllerClassStyleMode;
 import com.gm.easecode.common.vo.FileAliasMode;
+import com.gm.easecode.config.AppConfig;
 
 public abstract class AbstractFrameworkProvider implements FrameworkProvider {
 
@@ -57,6 +61,19 @@ public abstract class AbstractFrameworkProvider implements FrameworkProvider {
 		AppContext.addQualifiedClassName(className, qualifiedClassName);
 	}
 	
+	
+	@Override
+	public AppNameSpace getAppNameSpace(AppConfig config) {
+		AppNameSpace appNameSpace = new AppNameSpace(config);
+		appNameSpace.setFrameDependey(this.getFrameDependey());
+		return appNameSpace;
+	}
+
+	@Override
+	public AppTableNameSpace getAppModuleNameSpace(AppNameSpace appNameSpace, String moduleName, AppModule appModule) {
+		return new AppTableNameSpace(appNameSpace, moduleName, appModule);
+	}
+
 	/**
 	 * 初始化类的配置
 	 * @param appClass

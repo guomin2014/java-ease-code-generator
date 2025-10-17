@@ -87,6 +87,13 @@ public class AppTableNameSpace {
 	/** 区分子模块的层级 */
 	private int subModuleDepth = 1;
 	
+	/** 根包名 */
+	private String pkgRoot;
+	/** Java文件的根路径 */
+	private String javaRootPath;
+	/** Java文件的根路径 */
+	private String resourceRootPath;
+	
 	/**
 	 * 
 	 * @param config       常用配置
@@ -151,9 +158,9 @@ public class AppTableNameSpace {
 				}
 			}
 		}
-		String pkgRoot = TableUtil.getPackage(config.getRootPackage(), subPackage);
-		String baseJavaPath = appNameSpace.getBaseJavaPath(categoryNum, category);
-		String baseResourcePath = appNameSpace.getBaseResourcePath(categoryNum, category);
+		pkgRoot = TableUtil.getPackage(config.getRootPackage(), subPackage);
+		javaRootPath = appNameSpace.getBaseJavaPath(categoryNum, category);
+		resourceRootPath = appNameSpace.getBaseResourcePath(categoryNum, category);
 		sqlFileName = config.getProjectName() + ".sql." + config.getProjectMark();
 		sqlFilePath = StringUtils.appendIfMissing(config.getSqlFilePath() ,"/");
 		entityPkgName = TableUtil.getPackage(pkgRoot, config.getEntityPathSpecs());
@@ -161,18 +168,18 @@ public class AppTableNameSpace {
 		servicePkgName = TableUtil.getPackage(pkgRoot, config.getServicePathSpecs());
 		controllerPkgName = TableUtil.getPackage(pkgRoot, config.getControllerPathSpecs());
 		controllerDtoPkgName = TableUtil.getPackage(controllerPkgName, config.getControllerDtoPathSpecs());
-		entityPath = TableUtil.getPath(baseJavaPath, entityPkgName);
-		daoPath = TableUtil.getPath(baseJavaPath, daoPkgName);
-		servicePath = TableUtil.getPath(baseJavaPath, servicePkgName);
-		controllerPath = TableUtil.getPath(baseJavaPath, controllerPkgName);
-		controllerDtoPath = TableUtil.getPath(baseJavaPath, controllerDtoPkgName);
+		entityPath = TableUtil.getPath(javaRootPath, entityPkgName);
+		daoPath = TableUtil.getPath(javaRootPath, daoPkgName);
+		servicePath = TableUtil.getPath(javaRootPath, servicePkgName);
+		controllerPath = TableUtil.getPath(javaRootPath, controllerPkgName);
+		controllerDtoPath = TableUtil.getPath(javaRootPath, controllerDtoPkgName);
 		String ibatisRelativePath = null;
 		if (codeStyle == CodeStyleMode.MAVEN || config.getConfigStyle() == ConfigStyleMode.Annotation) {
 			ibatisRelativePath = "sqlmap" + "/" + TableUtil.getEntityName(category) + "/";
 		} else {
 			ibatisRelativePath = "dao" + "/" + config.getDaoImplPathSpecs() + "/";
 		}
-		ibatisConfPath = baseResourcePath + ibatisRelativePath;
+		ibatisConfPath = resourceRootPath + ibatisRelativePath;
 		daoImplPkgName = daoPkgName + "." + config.getDaoImplPathSpecs();
 		serviceImplPkgName = servicePkgName + "." + config.getServiceImplPathSpecs();
 		daoImplPath = daoPath + config.getDaoImplPathSpecs() + "/";
@@ -293,4 +300,17 @@ public class AppTableNameSpace {
 	public void setControllerDtoPath(String controllerDtoPath) {
 		this.controllerDtoPath = controllerDtoPath;
 	}
+
+	public String getPkgRoot() {
+		return pkgRoot;
+	}
+
+	public String getJavaRootPath() {
+		return javaRootPath;
+	}
+
+	public String getResourceRootPath() {
+		return resourceRootPath;
+	}
+	
 }

@@ -15,8 +15,8 @@ public class CodeGenerator {
 		String dbPwd = "123456";
 		AppConfigBuilder builder = new AppConfigBuilder()
 				.setAppName("demo")// 应用名称
-				.setCompanyPackage("com.gm.javaeaseframe")// 应用父级包结构，默认com.gm，将与appName组合成完成父级包路径，比如：com.gm.appname
-				.setFramework(FrameworkProviderFactory.FrameworkProviderMode.JavaEaseFrame)// 基础框架
+				.setCompanyPackage("com.uniops.framework")// 应用父级包结构，默认com.gm，将与appName组合成完成父级包路径，比如：com.gm.appname
+				.setFramework(FrameworkProviderFactory.FrameworkProviderMode.UniopsFrame)// 基础框架
 				.setControllerClassStyle(ControllerClassStyleMode.DTO_MAPPING)// Controller类风格
 				.createSystemModule(true)// 是否创建系统模块，如是，则添加整个应用启动的相关配置，且可直接运行
 				.createEntityFile(true)// 是否创建实体文件代码（model与xml）

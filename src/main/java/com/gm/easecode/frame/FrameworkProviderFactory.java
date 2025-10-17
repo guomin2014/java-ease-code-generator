@@ -2,12 +2,14 @@ package com.gm.easecode.frame;
 
 import com.gm.easecode.frame.spi.AgricultureFrameProvider;
 import com.gm.easecode.frame.spi.JavaEaseFrameProvider;
+import com.gm.easecode.frame.spi.UniopsFrameProvider;
 
 public class FrameworkProviderFactory {
 	
 	public static enum FrameworkProviderMode {
 		JavaEaseFrame("JavaEaseFrame", "1.0.0"),
-		AgricultureFrame("AgricultureFrame", "1.0.0");
+		AgricultureFrame("AgricultureFrame", "1.0.0"),
+		UniopsFrame("UniopsFrame", "1.0.0"),;
 		
 		String name;
 		String version;
@@ -94,6 +96,9 @@ public class FrameworkProviderFactory {
 			break;
 		case AgricultureFrame:
 			provider = new AgricultureFrameProvider();
+			break;
+		case UniopsFrame:
+			provider = new UniopsFrameProvider();
 			break;
 		}
 		return provider;

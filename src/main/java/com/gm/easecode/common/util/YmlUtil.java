@@ -24,6 +24,7 @@ public class YmlUtil {
 		content = content.replace("${AppName}", config.getAppName());
 		content = content.replace("${RootPackage}", config.getRootPackage());
 		content = content.replace("${ControllerPackages}", config.getRootPackage());
+		content = content.replace("${FrameName}", config.getFrameworkName().toLowerCase());
 		return content;
 	}
 	public static String getApplicationServiceDevYmlContent(AppNameSpace nameSpace) throws Exception{

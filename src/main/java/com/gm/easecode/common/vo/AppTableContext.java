@@ -51,7 +51,7 @@ public class AppTableContext extends AppClassHandler{
 		this.config = appNameSpace.getConfig();
 		this.table = table;
 		this.appModule = appModule;
-		this.nameParam = new AppTableNameSpace(appNameSpace, table.getTableName(), appModule);
+		this.nameParam = frameworkProvider.getAppModuleNameSpace(appNameSpace, table.getTableName(), appModule);
 		this.classMap = new HashMap<>();
 		this.aliasVariableMap = new HashMap<>();
 		this.init();

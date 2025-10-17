@@ -86,8 +86,7 @@ public class AppCodeService {
 			callback.notifyMsg(new MessageEntity("没有符合条件的FrameworkProvider[name:" + config.getFrameworkName()+"][version:" + config.getFrameworkVersion() + "]"));
 			return;
 		}
-		AppNameSpace appNameSpace = new AppNameSpace(config);
-		appNameSpace.setFrameDependey(frameworkProvider.getFrameDependey());
+		AppNameSpace appNameSpace = frameworkProvider.getAppNameSpace(config);
 		AppModule defaultModule = new AppModuleBuilder().build();
 		List<AppModule> modules = config.getModules();
 		Map<String, AppModule> tableModuleMap = new HashMap<>();

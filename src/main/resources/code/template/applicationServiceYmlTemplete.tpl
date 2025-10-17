@@ -11,7 +11,7 @@ spring:
 server:
   tomcat:
     uri-encoding: UTF-8
-javaeaseframe:
+${FrameName}:
   interceptor:
     login:
       enable: false
@@ -58,13 +58,13 @@ javaeaseframe:
       username: admin
       password: 123456
     openapi:
-      title: JavaEaseFrame框架-demo项目
-      description: "这是应用的描述信息"
-      email: guomin@javaeaseframe.com
+      title: ${FrameName}框架-demo项目
+      description: "这是使用${FrameName}框架的demo项目"
+      email: guomin@${FrameName}.com
       concat: guomin
       group:
         group1:
-          group-name: 分组名称
+          group-name: 默认分组
           api-rule: package
           api-rule-resources:
             - ${RootPackage}

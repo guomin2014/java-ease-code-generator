@@ -26,6 +26,9 @@
 --ServiceImpl-imports#JavaEaseFrame#start--------
 ["List","ArrayList","BusinessException","Context","IUser","PageInfo","com.gm.javaeaseframe.common.util.DataUtil","com.gm.javaeaseframe.common.util.StringUtils","org.springframework.beans.BeanUtils","${ModuleQueryName}"]
 --ServiceImpl-imports#JavaEaseFrame#end--------
+--ServiceImpl-imports#UniopsFrame#start--------
+["List","ArrayList","BusinessException","Context","IUser","PageInfo","com.uniops.framework.common.util.DataUtil","com.uniops.framework.common.util.StringUtils","org.springframework.beans.BeanUtils","${ModuleQueryName}"]
+--ServiceImpl-imports#UniopsFrame#end--------
 --ServiceImpl-fields#start--------
 	/**
      * 系统平台组织架构以10开头
