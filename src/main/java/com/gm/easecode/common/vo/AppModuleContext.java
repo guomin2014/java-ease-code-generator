@@ -28,7 +28,7 @@ public class AppModuleContext extends AppClassHandler{
 	
 	private AppNameSpace appNameSpace;
 	
-	public AppModule table;
+	public AppModule appModule;
 	
 	public AppModuleGroup appModuleGroup;
 	
@@ -45,13 +45,13 @@ public class AppModuleContext extends AppClassHandler{
 	
 	private Map<String, String> aliasVariableMap;
 	
-	public AppModuleContext(FrameworkProvider frameworkProvider, AppModule table, AppModuleGroup appModuleGroup) {
+	public AppModuleContext(FrameworkProvider frameworkProvider, AppModule appModule, AppModuleGroup appModuleGroup) {
 		this.frameworkProvider = frameworkProvider;
 		this.appNameSpace = frameworkProvider.getAppNameSpace();
 		this.config = appNameSpace.getConfig();
-		this.table = table;
+		this.appModule = appModule;
 		this.appModuleGroup = appModuleGroup;
-		this.nameParam = frameworkProvider.getAppModuleNameSpace(appNameSpace, table.getTableName(), appModuleGroup);
+		this.nameParam = frameworkProvider.getAppModuleNameSpace(appNameSpace, appModule.getTableName(), appModuleGroup);
 		this.classMap = new HashMap<>();
 		this.aliasVariableMap = new HashMap<>();
 		this.init();
@@ -62,18 +62,18 @@ public class AppModuleContext extends AppClassHandler{
 		initAliasVariable();
 		//获取主键类型
 		String pkType = "";
-		if(this.table.getPriNum() > 1){//联合主键
+		if(this.appModule.getPriNum() > 1){//联合主键
 			pkType = this.nameParam.getEntityKey();
 		} else {
-			if (this.table.getPriColList().size() > 0){
-				pkType = this.table.getPriColList().get(0).getJavaType();
+			if (this.appModule.getPriColList().size() > 0){
+				pkType = this.appModule.getPriColList().get(0).getJavaType();
 			}else{
 				pkType = "Long";
 			}
 		}
-		List<AppModuleProperties> columnList = table.getColumnList();
+		List<AppModuleProperties> columnList = appModule.getColumnList();
 		//初始化Entity对象
-		AppClass entityClass = this.createAppClass(FileAliasMode.Entity.name(), this.nameParam.getEntityName(), this.nameParam.getEntityPkgName(), this.nameParam.getEntityPath(), this.table.getComment(), pkType);
+		AppClass entityClass = this.createAppClass(FileAliasMode.Entity.name(), this.nameParam.getEntityName(), this.nameParam.getEntityPkgName(), this.nameParam.getEntityPath(), this.appModule.getComment(), pkType);
 		entityClass.addField(new AppClassFieldSerial());
 		this.createAppClassFields(entityClass, columnList);
 		List<AppClassMethod> entityMethods = new ArrayList<>();
@@ -84,13 +84,13 @@ public class AppModuleContext extends AppClassHandler{
 		classMap.put(entityClass.getAliasName(), entityClass);
 		classMap.put("EntityKey", new AppClass(pkType));
 		//初始化Query对象
-		AppClass queryClass = this.createAppClass(FileAliasMode.Query.name(), this.nameParam.getQueryName(), this.nameParam.getEntityPkgName(), this.nameParam.getEntityPath(), this.table.getComment(), pkType);
+		AppClass queryClass = this.createAppClass(FileAliasMode.Query.name(), this.nameParam.getQueryName(), this.nameParam.getEntityPkgName(), this.nameParam.getEntityPath(), this.appModule.getComment(), pkType);
 		queryClass.addField(new AppClassFieldSerial());
 		this.createAppClassFields(queryClass, columnList);
 		queryClass.addMethod(new AppClassMethodGetAndSet());
 		classMap.put(queryClass.getAliasName(), queryClass);
 		//初始化Form对象
-		AppClass formClass = this.createAppClass(FileAliasMode.Form.name(), this.nameParam.getContFormName(), this.nameParam.getControllerPkgName(), this.nameParam.getControllerPath(), this.table.getComment(), pkType);
+		AppClass formClass = this.createAppClass(FileAliasMode.Form.name(), this.nameParam.getContFormName(), this.nameParam.getControllerPkgName(), this.nameParam.getControllerPath(), this.appModule.getComment(), pkType);
 		List<AppClassField> formFields = new ArrayList<>();
 		formFields.add(new AppClassFieldList("entity", entityClass.getClassName(), "new " + entityClass.getClassName() + "()", "实体对象"));
 		formFields.add(new AppClassFieldList("query", queryClass.getClassName(), "new " + queryClass.getClassName() + "()", "查询对象"));
@@ -99,40 +99,40 @@ public class AppModuleContext extends AppClassHandler{
 		formClass.addImportClass(queryClass.getFullClassName());
 		classMap.put(formClass.getAliasName(), formClass);
 		//初始化Dto对象
-		AppClass requestDtoClass = this.createAppClass(FileAliasMode.RequestDto.name(), this.nameParam.getControllerDtoReqName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.table.getComment(), pkType);
+		AppClass requestDtoClass = this.createAppClass(FileAliasMode.RequestDto.name(), this.nameParam.getControllerDtoReqName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.appModule.getComment(), pkType);
 		requestDtoClass.setOverrideParentField(true);
 		requestDtoClass.addField(new AppClassFieldSerial());
 		this.createAppClassFields(requestDtoClass, columnList);
 		requestDtoClass.addMethod(new AppClassMethodGetAndSet());
 		classMap.put(requestDtoClass.getAliasName(), requestDtoClass);
-		AppClass requestPageDtoClass = this.createAppClass(FileAliasMode.RequestPageDto.name(), this.nameParam.getControllerDtoReqPageName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.table.getComment(), pkType);
+		AppClass requestPageDtoClass = this.createAppClass(FileAliasMode.RequestPageDto.name(), this.nameParam.getControllerDtoReqPageName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.appModule.getComment(), pkType);
 		requestPageDtoClass.setOverrideParentField(true);
 		requestPageDtoClass.addField(new AppClassFieldSerial());
 		this.createAppClassFields(requestPageDtoClass, columnList);
 		requestPageDtoClass.addMethod(new AppClassMethodGetAndSet());
 		classMap.put(requestPageDtoClass.getAliasName(), requestPageDtoClass);
-		AppClass responseDtoClass = this.createAppClass(FileAliasMode.ResponseDto.name(), this.nameParam.getControllerDtoRspName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.table.getComment(), pkType);
+		AppClass responseDtoClass = this.createAppClass(FileAliasMode.ResponseDto.name(), this.nameParam.getControllerDtoRspName(), this.nameParam.getControllerDtoPkgName(), this.nameParam.getControllerDtoPath(), this.appModule.getComment(), pkType);
 		responseDtoClass.setOverrideParentField(true);
 		responseDtoClass.addField(new AppClassFieldSerial());
 		this.createAppClassFields(responseDtoClass, columnList);
 		responseDtoClass.addMethod(new AppClassMethodGetAndSet());
 		classMap.put(responseDtoClass.getAliasName(), responseDtoClass);
 		//初始化Dao对象
-		AppClass daoClass = this.createAppInterface(FileAliasMode.Dao.name(), this.nameParam.getDaoName(), this.nameParam.getDaoPkgName(), this.nameParam.getDaoPath(), this.table.getComment(), pkType);
+		AppClass daoClass = this.createAppInterface(FileAliasMode.Dao.name(), this.nameParam.getDaoName(), this.nameParam.getDaoPkgName(), this.nameParam.getDaoPath(), this.appModule.getComment(), pkType);
 		classMap.put(daoClass.getAliasName(), daoClass);
 		//初始化DaoImpl对象
-		AppClass daoImplClass = this.createAppClass(FileAliasMode.DaoImpl.name(), this.nameParam.getDaoImplName(), this.nameParam.getDaoImplPkgName(), this.nameParam.getDaoImplPath(), this.table.getComment(), pkType);
+		AppClass daoImplClass = this.createAppClass(FileAliasMode.DaoImpl.name(), this.nameParam.getDaoImplName(), this.nameParam.getDaoImplPkgName(), this.nameParam.getDaoImplPath(), this.appModule.getComment(), pkType);
 		daoImplClass.addImplementsClass(daoClass);
 		classMap.put(daoImplClass.getAliasName(), daoImplClass);
 		//初始化Service对象
-		AppClass serviceClass = this.createAppInterface(FileAliasMode.Service.name(), this.nameParam.getServiceName(), this.nameParam.getServicePkgName(), this.nameParam.getServicePath(), this.table.getComment(), pkType);
+		AppClass serviceClass = this.createAppInterface(FileAliasMode.Service.name(), this.nameParam.getServiceName(), this.nameParam.getServicePkgName(), this.nameParam.getServicePath(), this.appModule.getComment(), pkType);
 		classMap.put(serviceClass.getAliasName(), serviceClass);
 		//初始化ServiceImpl对象
-		AppClass serviceImplClass = this.createAppClass(FileAliasMode.ServiceImpl.name(), this.nameParam.getServiceImplName(), this.nameParam.getServiceImplPkgName(), this.nameParam.getServiceImplPath(), this.table.getComment(), pkType);
+		AppClass serviceImplClass = this.createAppClass(FileAliasMode.ServiceImpl.name(), this.nameParam.getServiceImplName(), this.nameParam.getServiceImplPkgName(), this.nameParam.getServiceImplPath(), this.appModule.getComment(), pkType);
 		serviceImplClass.addImplementsClass(serviceClass);
 		classMap.put(serviceImplClass.getAliasName(), serviceImplClass);
 		//初始化controller对象
-		AppClass controllerClass = this.createAppClass(FileAliasMode.Controller.name(), this.nameParam.getControllerName(), this.nameParam.getControllerPkgName(), this.nameParam.getControllerPath(), this.table.getComment(), pkType);
+		AppClass controllerClass = this.createAppClass(FileAliasMode.Controller.name(), this.nameParam.getControllerName(), this.nameParam.getControllerPkgName(), this.nameParam.getControllerPath(), this.appModule.getComment(), pkType);
 		classMap.put(controllerClass.getAliasName(), controllerClass);
 		//合并类的业务实现，比如内置模块
 		mergeInnerClass();
@@ -156,20 +156,20 @@ public class AppModuleContext extends AppClassHandler{
 		.setDesc(desc)
 		.setPkType(pkType)
 		.setControllerClassStyle(this.config.getControllerClassStyle())
-		.setTree(this.table.isTreeTable())
-		.setSubmeter(this.table.isSubmeterTable())
-		.setSubmeterTableStrategy(this.table.getSubmeterTableStrategy())
+		.setTree(this.appModule.isTreeTable())
+		.setSubmeter(this.appModule.isSubmeterTable())
+		.setSubmeterTableStrategy(this.appModule.getSubmeterTableStrategy())
 		.build();
 	}
 	/**
 	 * 合并内部模块相关类的属性
 	 */
 	private void mergeInnerClass() {
-		if (table.isInnerTable()) {
+		if (appModule.isInnerTable()) {
 			for(Map.Entry<String, AppClass> entry : classMap.entrySet()) {
 				String aliasName = entry.getKey();
 				AppClass appClass = entry.getValue();
-				AppClass innerClass = table.getInnerClass(aliasName);
+				AppClass innerClass = appModule.getInnerClass(aliasName);
 				if (innerClass != null) {
 					if (innerClass.getImportClasses() != null && !innerClass.getImportClasses().isEmpty()) {
 						appClass.addImportClasses(replaceAliasVariable(innerClass.getImportClasses()));
@@ -195,8 +195,8 @@ public class AppModuleContext extends AppClassHandler{
 	}
 	
 	private void initAliasVariable() {
-		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.MODULE_DESC), StringUtils.trim(this.table.getComment()));
-		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.MODULE_TABLE_NAME), StringUtils.trim(this.table.getTableName()));
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.MODULE_DESC), StringUtils.trim(this.appModule.getComment()));
+		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.MODULE_TABLE_NAME), StringUtils.trim(this.appModule.getTableName()));
 		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.MODULE_ENTITY_NAME), this.nameParam.getEntityName());
 		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.MODULE_QUERY_NAME), this.nameParam.getQueryName());
 		this.aliasVariableMap.put(AliasConstants.generalAliasVariable(AliasConstants.DAO_NAME), this.nameParam.getDaoName());
@@ -671,11 +671,11 @@ public class AppModuleContext extends AppClassHandler{
 	}
 
 	public AppModule getTable() {
-		return table;
+		return appModule;
 	}
 
 	public void setTable(AppModule table) {
-		this.table = table;
+		this.appModule = table;
 	}
 
 	public AppModuleGroup getAppModule() {

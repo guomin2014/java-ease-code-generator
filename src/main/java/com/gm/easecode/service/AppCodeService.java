@@ -157,7 +157,7 @@ public class AppCodeService {
 			callback.notifyMsg(new MessageEntity("预存储文件路径--->" + config.getCodeSavePath()));
 			callback.notifyMsg(new MessageEntity("开始构建模块代码"));
 			for (AppModuleContext context : contexts) {
-				callback.notifyMsg(new MessageEntity("构建模块[" + context.table.getTableName() + "]"));
+				callback.notifyMsg(new MessageEntity("构建模块[" + context.appModule.getTableName() + "]"));
 				if (config.isCreateEntityFile()) {
 					crtIbatisXmlFile(context, FileAliasMode.EntityXml.name(), callback);
 					crtClassFile(context, FileAliasMode.Entity.name(), callback);
