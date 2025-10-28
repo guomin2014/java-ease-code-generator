@@ -35,6 +35,10 @@ public class UniopsFrameProvider extends AbstractFrameworkProvider {
 	private String frameworkPackage = "";
 	/** 框架包common路径 */
 	private String frameworkCommonPackage = "";
+	/** 框架包继承类路径 */
+	private String frameworkCommonExtendsPackage = "";
+	/** 框架包继承类路径 */
+	private String frameworkCommonExtendsModelPackage = "";
 	/** 框架包core路径 */
 	private String frameworkCorePackage = "";
 	/** 框架包boot路径 */
@@ -64,6 +68,7 @@ public class UniopsFrameProvider extends AbstractFrameworkProvider {
 	public void initFramePackage() {
 		this.frameworkPackage = "com.uniops.framework";
 		this.frameworkCommonPackage = this.frameworkPackage + ".common";
+		this.frameworkCommonExtendsPackage = this.frameworkPackage + ".common.base";
 		this.frameworkCorePackage = this.frameworkPackage + ".core";
 		this.frameworkBootPackage = this.frameworkCorePackage + ".boot";
 		this.frameworkExtendsPackage = this.frameworkCorePackage + ".context";
@@ -73,12 +78,13 @@ public class UniopsFrameProvider extends AbstractFrameworkProvider {
 		this.frameworkExtendsServicePackage = this.frameworkExtendsPackage + ".service";
 		this.frameworkExtendsServiceImplPackage = this.frameworkExtendsPackage + ".service.impl";
 		this.frameworkExtendsWebPackage = this.frameworkExtendsPackage + ".web";
-		this.frameworkExtendsWebDtoPackage = this.frameworkExtendsPackage + ".dto";
+		this.frameworkExtendsWebDtoPackage = frameworkCommonExtendsPackage + ".dto";
+		this.frameworkCommonExtendsModelPackage = frameworkCommonExtendsPackage + ".model";
 	}
 	public void initFrameQualifiedClassName() {
 		//添加框架常用全量类路径
 		addQualifiedClassName("Context", this.frameworkExtendsModelPackage + ".Context");
-		addQualifiedClassName("PageInfo", this.frameworkExtendsModelPackage + ".PageInfo");
+		addQualifiedClassName("PageInfo", this.frameworkCommonExtendsModelPackage + ".PageInfo");
 		addQualifiedClassName("GlobalException", this.frameworkPackage + ".web.spring.boot.autoconfigure.annotation.GlobalException");
 		addQualifiedClassName("BusinessException", this.frameworkCommonPackage + ".exception.BusinessException");
 		addQualifiedClassName("IUser", this.frameworkExtendsServicePackage + ".IUser");
@@ -88,11 +94,11 @@ public class UniopsFrameProvider extends AbstractFrameworkProvider {
 	}
 	
 	public void initFrameBaseClass() {
-		this.initBaseEntityClass("BaseEntity", this.frameworkExtendsModelPackage, "PK", "Default");
-		this.initBaseEntityClass("BaseEntityInt", this.frameworkExtendsModelPackage, "Integer");
-		this.initBaseEntityClass("BaseEntityLong", this.frameworkExtendsModelPackage, "Long");
-		this.initBaseEntityClass("BaseEntityStr", this.frameworkExtendsModelPackage, "String");
-		this.initBaseTreeEntityClass("BaseTreeEntityLong", this.frameworkExtendsModelPackage, "Long", "Tree-Long");
+		this.initBaseEntityClass("BaseEntity", this.frameworkCommonExtendsModelPackage, "PK", "Default");
+		this.initBaseEntityClass("BaseEntityInt", this.frameworkCommonExtendsModelPackage, "Integer");
+		this.initBaseEntityClass("BaseEntityLong", this.frameworkCommonExtendsModelPackage, "Long");
+		this.initBaseEntityClass("BaseEntityStr", this.frameworkCommonExtendsModelPackage, "String");
+		this.initBaseTreeEntityClass("BaseTreeEntityLong", this.frameworkCommonExtendsModelPackage, "Long", "Tree-Long");
 		
 		initBaseControllerClass("BaseCRUDController", this.frameworkExtendsWebPackage, ControllerClassStyleMode.SPRING_MVC.name(), ControllerClassStyleMode.SPRING_MVC);
 		initBaseControllerClass("BaseCRUDMappingController", this.frameworkExtendsWebPackage, ControllerClassStyleMode.SPRING_MVC_MAPPING.name(), ControllerClassStyleMode.SPRING_MVC_MAPPING);
