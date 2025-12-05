@@ -87,6 +87,9 @@ public abstract class AbstractDataSourceProvider implements DataSourceProvider {
 				|| (StringUtils.isNotEmpty(fieldIsAutoIncr) && (fieldIsAutoIncr.equalsIgnoreCase("Yes") || fieldIsAutoIncr.equalsIgnoreCase("true")))) {
 			column.setPri(true);
 		}
+		if (StringUtils.isNotEmpty(fieldIsAutoIncr) && (fieldIsAutoIncr.equalsIgnoreCase("Yes") || fieldIsAutoIncr.equalsIgnoreCase("true"))) {
+			column.setAutoIncrement(true);
+		}
 		if (StringUtils.isNotEmpty(fieldComment)) {
 			if (fieldComment.indexOf("自增长") != -1) {
 				fieldComment = fieldComment.replaceAll("自增长", "");

@@ -19,7 +19,7 @@
 		insert into ${entityTableName} ${insertBody}
 	</insert>
 	<!-- 批量新增 -->
-	<insert id="insertBatch" parameterType="paramDto" useGeneratedKeys="true" keyProperty="id">
+	<insert id="insertBatch" parameterType="paramDto">
 		insert into ${entityTableName} ${insertBodyField}
 		VALUES
 		<foreach collection="data.dataList" item="item" index="index" separator="," >  
