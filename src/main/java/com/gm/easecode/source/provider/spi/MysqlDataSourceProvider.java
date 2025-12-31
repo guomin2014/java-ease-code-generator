@@ -164,6 +164,7 @@ public class MysqlDataSourceProvider extends AbstractDataSourceProvider {
                         int digits = colRet.getInt("DECIMAL_DIGITS"); //小数长度
 //                        boolean isRequestField = nullable == 0;
                         String columnRequired = nullable == 0 ? "是" : "否";
+                        columnType = columnType.toUpperCase().replaceAll("UNSIGNED", "").trim();
                         String dbColumnType = columnType;
                         if ("double".equalsIgnoreCase(columnType) || "float".equalsIgnoreCase(columnType) || "decimal".equalsIgnoreCase(columnType)) {
                             dbColumnType = columnType + "(" + datasize + "," + digits + ")";

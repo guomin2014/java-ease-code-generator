@@ -153,13 +153,17 @@ public abstract class AbstractFrameworkProvider implements FrameworkProvider {
 		entityFields.add(new AppClassFieldList("createTime", "Date"));
 		entityFields.add(new AppClassFieldList("createUser", "String"));
 		entityFields.add(new AppClassFieldList("createUserId", "Long"));
+		entityFields.add(new AppClassFieldList("createUserUuid", "String"));
 		entityFields.add(new AppClassFieldList("createUserName", "String"));
+		entityFields.add(new AppClassFieldList("createUserOrgUuid", "String"));
 		entityFields.add(new AppClassFieldList("createUserDeptId", "Long"));
 		entityFields.add(new AppClassFieldList("createUserDeptName", "String"));
 		entityFields.add(new AppClassFieldList("updateTime", "Date"));
 		entityFields.add(new AppClassFieldList("updateUser", "String"));
 		entityFields.add(new AppClassFieldList("updateUserId", "Long"));
+		entityFields.add(new AppClassFieldList("UpdateUserUuid", "String"));
 		entityFields.add(new AppClassFieldList("updateUserName", "String"));
+		entityFields.add(new AppClassFieldList("updateUserOrgUuid", "String"));
 		entityFields.add(new AppClassFieldList("updateUserDeptId", "Long"));
 		entityFields.add(new AppClassFieldList("updateUserDeptName", "String"));
 		entityClass.setFields(entityFields);
